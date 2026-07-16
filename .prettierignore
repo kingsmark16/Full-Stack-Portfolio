@@ -1,0 +1,14 @@
+node_modules
+.turbo
+**/.next
+**/dist
+coverage
+playwright-report
+test-results
+**/pnpm-lock.yaml
+**/package-lock.json
+**/yarn.lock
+**/bun.lockb
+.agents
+.claude
+**/next-env.d.ts
