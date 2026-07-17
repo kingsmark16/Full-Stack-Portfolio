@@ -24,12 +24,20 @@ Capture conventions from the real scaffold, then add the checks that every later
 - [x] Check it runs cleanly: `/test tooling`
       [Tooling spec](../specs/_root/0001-tooling.md) · tooling in `package.json`, `.prettierrc.json`, `.prettierignore`, `lint-staged.config.mjs`, `commitlint.config.mjs`, `.husky/`, and `.github/`
 
-### 3. Portfolio data model · needs a decision
+### 3. Portfolio data model · in-progress
 
 Define the content, ownership, contact, media, and publishing records that support both public pages and the dashboard without costly redesign.
 **Done when:** the model supports one owner, profile details, skills, experience, education, certifications, services, projects, media, the current resume, and contact messages with clear relationships and deletion rules.
 
-- [ ] Design it (spec): `/architect portfolio data model`
+- [x] Design it (spec): `/architect portfolio data model`
+      [Spec 0002](../specs/0002-portfolio-content/index.md)
+- [ ] Build it: `/develop portfolio content`
+  - [ ] Build the relational content model and migration, **AC-1**
+  - [ ] Build the public portfolio API and rate limits, **AC-2**, **AC-6**
+  - [ ] Build the public page states and SEO behavior, **AC-3**, **AC-4**
+  - [ ] Build contact persistence, email outbox, and abuse controls, **AC-5**, **AC-6**
+- [ ] Verify it: `/check verify portfolio content`
+- [ ] Test it: `/test portfolio content`
 
 ### 4. Design system and UI foundation · needs a decision
 
