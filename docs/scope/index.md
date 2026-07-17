@@ -11,7 +11,7 @@ A production portfolio for hiring managers and technical interviewers. It presen
 | --- | ------------------------------- | --------------- | ----------- |
 | 1   | Stack and architecture          | Foundation      | done        |
 | 2   | Coding standards and tooling    | Foundation      | in-progress |
-| 3   | Portfolio data model            | Foundation      | planned     |
+| 3   | Portfolio data model            | Foundation      | in-progress |
 | 4   | Design system and UI foundation | Foundation      | planned     |
 | 5   | Connected portfolio skeleton    | Skeleton        | planned     |
 | 6   | Home page                       | Visitor journey | planned     |

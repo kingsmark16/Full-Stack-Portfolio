@@ -1,0 +1,184 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat = "cjs"
+  importFileExtension = ""
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profile {
+  id           String   @id @default(uuid())
+  singletonKey String   @unique @default("default")
+  name         String   @db.VarChar(120)
+  biography    String   @db.VarChar(2000)
+  avatarUrl    String?  @db.VarChar(2048)
+  contactEmail String   @db.VarChar(320)
+  phoneNumber  String?  @db.VarChar(32)
+  resumeUrl    String?  @db.VarChar(2048)
+  published    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([published])
+}
+
+model Skill {
+  id           String         @id @default(uuid())
+  name         String         @db.VarChar(120)
+  iconUrl      String?        @db.VarChar(2048)
+  displayOrder Int            @default(0)
+  published    Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  projects     ProjectSkill[]
+
+  @@index([published, displayOrder, createdAt])
+}
+
+model Experience {
+  id           String   @id @default(uuid())
+  company      String   @db.VarChar(120)
+  role         String   @db.VarChar(120)
+  location     String?  @db.VarChar(120)
+  startMonth   String   @db.VarChar(7)
+  endMonth     String?  @db.VarChar(7)
+  current      Boolean  @default(false)
+  description  String   @db.VarChar(5000)
+  displayOrder Int      @default(0)
+  published    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([published, displayOrder, createdAt])
+}
+
+model Education {
+  id           String   @id @default(uuid())
+  institution  String   @db.VarChar(160)
+  degree       String   @db.VarChar(160)
+  location     String?  @db.VarChar(120)
+  startYear    Int
+  endYear      Int?
+  current      Boolean  @default(false)
+  displayOrder Int      @default(0)
+  published    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([published, displayOrder, createdAt])
+}
+
+model Certification {
+  id                  String   @id @default(uuid())
+  name                String   @db.VarChar(160)
+  issuingOrganization String   @db.VarChar(160)
+  issueYear           Int
+  credentialUrl       String?  @db.VarChar(2048)
+  displayOrder        Int      @default(0)
+  published           Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([published, displayOrder, createdAt])
+}
+
+model Service {
+  id           String   @id @default(uuid())
+  name         String   @db.VarChar(120)
+  description  String   @db.VarChar(5000)
+  iconUrl      String?  @db.VarChar(2048)
+  displayOrder Int      @default(0)
+  published    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([published, displayOrder, createdAt])
+}
+
+model Project {
+  id            String         @id @default(uuid())
+  title         String         @db.VarChar(160)
+  slug          String         @unique @db.VarChar(160)
+  description   String         @db.VarChar(5000)
+  imageUrl      String?        @db.VarChar(2048)
+  projectUrl    String?        @db.VarChar(2048)
+  repositoryUrl String?        @db.VarChar(2048)
+  startMonth    String?        @db.VarChar(7)
+  endMonth      String?        @db.VarChar(7)
+  displayOrder  Int            @default(0)
+  published     Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  skills        ProjectSkill[]
+
+  @@index([published, displayOrder, createdAt])
+}
+
+model ProjectSkill {
+  projectId String
+  skillId   String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  skill     Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, skillId])
+  @@index([skillId])
+}
+
+model ContactMessage {
+  id             String               @id @default(uuid())
+  idempotencyKey String               @unique @db.VarChar(255)
+  name           String               @db.VarChar(120)
+  email          String               @db.VarChar(320)
+  message        String               @db.VarChar(5000)
+  status         ContactMessageStatus @default(NEW)
+  submittedAt    DateTime             @default(now())
+  readAt         DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  emailOutbox    ContactEmailOutbox?
+
+  @@index([status, submittedAt])
+}
+
+model ContactEmailOutbox {
+  id               String                   @id @default(uuid())
+  contactMessageId String                   @unique
+  deduplicationKey String                   @unique @db.VarChar(255)
+  status           ContactEmailOutboxStatus @default(QUEUED)
+  attemptCount     Int                      @default(0)
+  availableAt      DateTime                 @default(now())
+  leaseUntil       DateTime?
+  lastError        String?                  @db.Text
+  deliveredAt      DateTime?
+  failedAt         DateTime?
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  contactMessage   ContactMessage           @relation(fields: [contactMessageId], references: [id], onDelete: Cascade)
+
+  @@index([status, availableAt])
+}
+
+enum ContactMessageStatus {
+  NEW      @map("new")
+  READ     @map("read")
+  ARCHIVED @map("archived")
+
+  @@map("contact_message_status")
+}
+
+enum ContactEmailOutboxStatus {
+  QUEUED     @map("queued")
+  PROCESSING @map("processing")
+  DELIVERED  @map("delivered")
+  FAILED     @map("failed")
+
+  @@map("contact_email_outbox_status")
+}
