@@ -10,10 +10,10 @@ A production portfolio for hiring managers and technical interviewers. It presen
 | #   | Feature                         | Phase           | Status      |
 | --- | ------------------------------- | --------------- | ----------- |
 | 1   | Stack and architecture          | Foundation      | done        |
-| 2   | Coding standards and tooling    | Foundation      | in-progress |
+| 2   | Coding standards and tooling    | Foundation      | done        |
 | 3   | Portfolio data model            | Foundation      | in-progress |
 | 4   | Design system and UI foundation | Foundation      | planned     |
-| 5   | Connected portfolio skeleton    | Skeleton        | planned     |
+| 5   | Connected portfolio skeleton    | Skeleton        | in-progress |
 | 6   | Home page                       | Visitor journey | planned     |
 | 7   | About and resume page           | Visitor journey | planned     |
 | 8   | Services page                   | Visitor journey | planned     |
@@ -33,7 +33,7 @@ A production portfolio for hiring managers and technical interviewers. It presen
 
 ## Epic status
 
-[Foundations](foundations.md): 1 feature is done and 4 are planned. Together they establish the monorepo, shared decisions, and a working connection across the site, API, and stored data.
+[Foundations](foundations.md): 2 features are done, 2 are in progress, and 1 is planned. Together they establish the monorepo, shared decisions, and a working connection across the site, API, and stored data.
 
 [Visitor journey](visitor.md): 6 planned features let a hiring manager understand the owner, inspect relevant work, download a resume, and make contact.
 

@@ -13,7 +13,7 @@ Record the pnpm monorepo, Next.js public and dashboard surfaces, NestJS API, sha
 - [x] Test it: `/test stack and architecture`
       [Spec 0001](../specs/0001-stack-architecture/index.md) · code in `apps/web/` and `apps/api/`
 
-### 2. Coding standards and tooling · in-progress
+### 2. Coding standards and tooling · done
 
 Capture conventions from the real scaffold, then add the checks that every later feature must follow.
 **Done when:** root `AGENTS.md` reflects the real project, and formatting, linting, type checks, commit checks, and continuous integration run cleanly.
@@ -32,12 +32,13 @@ Define the content, ownership, contact, media, and publishing records that suppo
 - [x] Design it (spec): `/architect portfolio data model`
       [Spec 0002](../specs/0002-portfolio-content/index.md)
 - [ ] Build it: `/develop portfolio content`
-  - [ ] Build the relational content model and migration, **AC-1**
+  - [x] Build the relational content model and migration, **AC-1**
   - [ ] Build the public portfolio API and rate limits, **AC-2**, **AC-6**
   - [ ] Build the public page states and SEO behavior, **AC-3**, **AC-4**
   - [ ] Build contact persistence, email outbox, and abuse controls, **AC-5**, **AC-6**
 - [ ] Verify it: `/check verify portfolio content`
 - [ ] Test it: `/test portfolio content`
+      Code in `apps/api/prisma/`, `apps/api/src/portfolio/`, and `apps/web/src/`
 
 ### 4. Design system and UI foundation · needs a decision
 
@@ -46,9 +47,10 @@ Create one visual language and a shared set of accessible interface patterns for
 
 - [ ] Design it (spec): `/architect design system and UI foundation`
 
-### 5. Connected portfolio skeleton
+### 5. Connected portfolio skeleton · in-progress
 
 Prove the core path across stored data, the API, and the public interface before full page work starts.
 **Done when:** one real portfolio record can be stored, returned through the API, and rendered by the site, with loading, empty, and error states and clean local builds.
 
 - [ ] Build it: `/develop connected portfolio skeleton`
+      Code in `apps/api/`, `apps/web/`, and `e2e/`
