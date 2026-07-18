@@ -56,18 +56,47 @@ describe('AppController (e2e)', () => {
   })
 
   it('accepts a valid contact submission', async () => {
+    const idempotencyKey = `contact-e2e-${randomUUID()}`
+    const payload = {
+      name: 'E2E Visitor',
+      email: 'e2e@example.com',
+      message: 'This is an end to end contact test.',
+      honeypot: '',
+    }
+
     await request(app.getHttpServer())
       .post('/contact')
-      .set('Idempotency-Key', `contact-e2e-${randomUUID()}`)
-      .send({
-        name: 'E2E Visitor',
-        email: 'e2e@example.com',
-        message: 'This is an end to end contact test.',
-        honeypot: '',
-      })
+      .set('Idempotency-Key', idempotencyKey)
+      .send(payload)
       .expect(202)
       .expect('Content-Type', /json/)
       .expect({ accepted: true })
+
+    const persistedMessage = (await prisma.contactMessage.findUnique({
+      where: { idempotencyKey },
+      include: { emailOutbox: true },
+    })) as {
+      idempotencyKey: string
+      name: string
+      email: string
+      message: string
+      emailOutbox: {
+        deduplicationKey: string
+        status: string
+      } | null
+    } | null
+
+    expect(persistedMessage).not.toBeNull()
+    expect(persistedMessage?.idempotencyKey).toBe(idempotencyKey)
+    expect(persistedMessage?.name).toBe(payload.name)
+    expect(persistedMessage?.email).toBe(payload.email)
+    expect(persistedMessage?.message).toBe(payload.message)
+    expect(persistedMessage?.emailOutbox).toEqual(
+      expect.objectContaining({
+        deduplicationKey: `contact:${idempotencyKey}`,
+        status: 'QUEUED',
+      }),
+    )
   })
 
   it('accepts a retry with the same idempotency key', async () => {
@@ -154,6 +183,27 @@ describe('AppController (e2e)', () => {
         code: 'VALIDATION_FAILED',
       }),
     )
+  })
+
+  it('AC-6 rate limits the sixth contact submission from one IP', async () => {
+    const statuses: number[] = []
+
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const response = await request(app.getHttpServer())
+        .post('/contact')
+        .set('Idempotency-Key', `contact-limit-${randomUUID()}`)
+        .send({
+          name: `Rate Limit Visitor ${attempt}`,
+          email: `rate-limit-${attempt}@example.com`,
+          message: 'This request checks the contact rate limit.',
+          honeypot: '',
+        })
+
+      statuses.push(response.status)
+    }
+
+    expect(statuses.slice(0, 5)).toEqual([202, 202, 202, 202, 202])
+    expect(statuses[5]).toBe(429)
   })
 
   afterEach(async () => {
