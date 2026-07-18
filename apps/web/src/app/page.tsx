@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getPortfolio } from '@/lib/portfolio'
 import { RetryButton } from './retry-button'
+import { ContactForm } from './contact-form'
 
 export const dynamic = 'force-dynamic'
 
@@ -85,7 +86,7 @@ export default async function Home() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <a
-              href={`mailto:${profile.contactEmail}`}
+              href="#contact"
               className="rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200"
             >
               Contact me
@@ -227,6 +228,14 @@ export default async function Home() {
             ) : null}
           </section>
         ) : null}
+
+        <section id="contact" className="mt-24 border-t border-zinc-800 pt-10">
+          <h2 className="text-2xl font-semibold">Get in touch</h2>
+          <p className="mt-3 max-w-2xl text-zinc-400">
+            Have a project in mind or want to start a conversation?
+          </p>
+          <ContactForm />
+        </section>
       </div>
     </main>
   )
