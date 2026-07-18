@@ -1,3 +1,4 @@
+import { HttpStatus, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { requestIdMiddleware } from './common/http/request-id.middleware'
@@ -8,6 +9,14 @@ async function bootstrap() {
 
   app.use(requestIdMiddleware)
   app.useGlobalFilters(new ProblemDetailsFilter())
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+    }),
+  )
 
   const port = Number(process.env.PORT) || 3001
 

@@ -9,6 +9,7 @@ import type { Request, Response } from 'express'
 
 const HTTP_STATUS = {
   BAD_REQUEST: 400,
+  UNPROCESSABLE_ENTITY: 422,
   NOT_FOUND: 404,
   TOO_MANY_REQUESTS: 429,
   INTERNAL_SERVER_ERROR: 500,
@@ -32,6 +33,9 @@ function asString(value: unknown): string | undefined {
 
 function titleForStatus(status: number): string {
   if (status === HTTP_STATUS.NOT_FOUND) return 'Not Found'
+  if (status === HTTP_STATUS.UNPROCESSABLE_ENTITY) {
+    return 'Validation Failed'
+  }
   if (status === HTTP_STATUS.TOO_MANY_REQUESTS) return 'Too Many Requests'
   if (status >= 500) return 'Internal Server Error'
 
@@ -48,7 +52,12 @@ function codeForStatus(status: number, path: string): string {
   }
 
   if (status === HTTP_STATUS.TOO_MANY_REQUESTS) return 'RATE_LIMITED'
-  if (status === HTTP_STATUS.BAD_REQUEST) return 'VALIDATION_FAILED'
+  if (
+    status === HTTP_STATUS.BAD_REQUEST ||
+    status === HTTP_STATUS.UNPROCESSABLE_ENTITY
+  ) {
+    return 'VALIDATION_FAILED'
+  }
 
   return 'REQUEST_FAILED'
 }
