@@ -33,11 +33,11 @@ Define the content, ownership, contact, media, and publishing records that suppo
       [Spec 0002](../specs/0002-portfolio-content/index.md)
 - [ ] Build it: `/develop portfolio content`
   - [x] Build the relational content model and migration, **AC-1**
-  - [ ] Build the public portfolio API and rate limits, **AC-2**, **AC-6**
+  - [x] Build the public portfolio API and rate limits, **AC-2**, **AC-6**
   - [ ] Build the public page states and SEO behavior, **AC-3**, **AC-4**
-  - [ ] Build contact persistence, email outbox, and abuse controls, **AC-5**, **AC-6**
+  - [x] Build contact persistence, email outbox, and abuse controls, **AC-5**, **AC-6**
 - [ ] Verify it: `/check verify portfolio content`
-- [ ] Test it: `/test portfolio content`
+- [x] Test it: `/test portfolio content`
       Code in `apps/api/prisma/`, `apps/api/src/portfolio/`, and `apps/web/src/`
 
 ### 4. Design system and UI foundation · needs a decision
