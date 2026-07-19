@@ -3,10 +3,22 @@ import { Test, TestingModule } from '@nestjs/testing'
 import request from 'supertest'
 import { App } from 'supertest/types'
 import { AppModule } from './../src/app.module'
+import {
+  configureTrustProxy,
+  type TrustProxyConfigurable,
+} from './../src/common/config/trust-proxy'
 import { ProblemDetailsFilter } from './../src/common/http/problem-details.filter'
 import { requestIdMiddleware } from './../src/common/http/request-id.middleware'
+import type { Express } from 'express'
 import { randomUUID } from 'node:crypto'
 import { PrismaService } from './../src/prisma/prisma.service'
+
+type PublicPortfolioResponse = {
+  projects: Array<{
+    slug: string
+    skills: Array<{ name: string; iconUrl: string | null }>
+  }>
+}
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>
@@ -18,6 +30,9 @@ describe('AppController (e2e)', () => {
     }).compile()
 
     app = moduleFixture.createNestApplication()
+    const expressApp = app.getHttpAdapter().getInstance() as Express &
+      TrustProxyConfigurable
+    configureTrustProxy(expressApp, '1')
 
     app.use(requestIdMiddleware)
     app.useGlobalFilters(new ProblemDetailsFilter())
@@ -53,6 +68,100 @@ describe('AppController (e2e)', () => {
         requestId: response.headers['x-request-id'],
       }),
     )
+  })
+
+  it('returns a portfolio not found problem when the profile is unpublished', async () => {
+    const profile = await prisma.profile.findUnique({
+      where: { singletonKey: 'default' },
+      select: { published: true },
+    })
+
+    if (!profile) {
+      throw new Error('The default profile is required for this test')
+    }
+
+    await prisma.profile.update({
+      where: { singletonKey: 'default' },
+      data: { published: false },
+    })
+
+    try {
+      const response = await request(app.getHttpServer())
+        .get('/portfolio')
+        .expect(404)
+        .expect('Content-Type', /application\/problem\+json/)
+
+      expect(response.body).toEqual(
+        expect.objectContaining({
+          status: 404,
+          code: 'PORTFOLIO_NOT_PUBLISHED',
+        }),
+      )
+    } finally {
+      await prisma.profile.update({
+        where: { singletonKey: 'default' },
+        data: { published: profile.published },
+      })
+    }
+  })
+
+  it('excludes unpublished skills linked to a published project', async () => {
+    const suffix = randomUUID()
+    const publishedSkill = await prisma.skill.create({
+      data: {
+        name: `Published Skill ${suffix}`,
+        displayOrder: 1,
+        published: true,
+      },
+    })
+    const unpublishedSkill = await prisma.skill.create({
+      data: {
+        name: `Unpublished Skill ${suffix}`,
+        displayOrder: 2,
+        published: false,
+      },
+    })
+    const project = await prisma.project.create({
+      data: {
+        title: `Public Project ${suffix}`,
+        slug: `public-project-${suffix}`,
+        description: 'A public project used for integration coverage.',
+        published: true,
+        skills: {
+          create: [
+            { skill: { connect: { id: publishedSkill.id } } },
+            { skill: { connect: { id: unpublishedSkill.id } } },
+          ],
+        },
+      },
+    })
+
+    try {
+      const response = await request(app.getHttpServer())
+        .get('/portfolio')
+        .expect(200)
+
+      const body = response.body as unknown as PublicPortfolioResponse
+
+      expect(body.projects).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            slug: project.slug,
+            skills: [
+              {
+                name: publishedSkill.name,
+                iconUrl: null,
+              },
+            ],
+          }),
+        ]),
+      )
+    } finally {
+      await prisma.project.delete({ where: { id: project.id } })
+      await prisma.skill.deleteMany({
+        where: { id: { in: [publishedSkill.id, unpublishedSkill.id] } },
+      })
+    }
   })
 
   it('accepts a valid contact submission', async () => {
@@ -204,6 +313,81 @@ describe('AppController (e2e)', () => {
 
     expect(statuses.slice(0, 5)).toEqual([202, 202, 202, 202, 202])
     expect(statuses[5]).toBe(429)
+  }, 30_000)
+
+  it('AC-6 separates client IPs behind one trusted proxy', async () => {
+    const firstClientAddress = '198.51.100.10'
+    const secondClientAddress = '198.51.100.11'
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      await request(app.getHttpServer())
+        .post('/contact')
+        .set('X-Forwarded-For', firstClientAddress)
+        .set('Idempotency-Key', `forwarded-limit-${randomUUID()}`)
+        .send({
+          name: `Forwarded Visitor ${attempt}`,
+          email: `forwarded-${attempt}@example.com`,
+          message: 'This request checks trusted proxy rate limits.',
+          honeypot: 'filled-by-test',
+        })
+        .expect(202)
+    }
+
+    await request(app.getHttpServer())
+      .post('/contact')
+      .set('X-Forwarded-For', firstClientAddress)
+      .set('Idempotency-Key', `forwarded-limit-${randomUUID()}`)
+      .send({
+        name: 'Forwarded Limited Visitor',
+        email: 'forwarded-limited@example.com',
+        message: 'This request should be rate limited.',
+        honeypot: 'filled-by-test',
+      })
+      .expect(429)
+
+    await request(app.getHttpServer())
+      .post('/contact')
+      .set('X-Forwarded-For', secondClientAddress)
+      .set('Idempotency-Key', `forwarded-limit-${randomUUID()}`)
+      .send({
+        name: 'Forwarded Separate Visitor',
+        email: 'forwarded-separate@example.com',
+        message: 'This request should use a separate bucket.',
+        honeypot: 'filled-by-test',
+      })
+      .expect(202)
+  })
+
+  it('AC-6 ignores spoofed forwarded IPs when no proxy is trusted', async () => {
+    const expressApp = app.getHttpAdapter().getInstance() as Express &
+      TrustProxyConfigurable
+    configureTrustProxy(expressApp, '0')
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      await request(app.getHttpServer())
+        .post('/contact')
+        .set('X-Forwarded-For', `198.51.100.${attempt + 20}`)
+        .set('Idempotency-Key', `spoofed-limit-${randomUUID()}`)
+        .send({
+          name: `Spoofed Visitor ${attempt}`,
+          email: `spoofed-${attempt}@example.com`,
+          message: 'This request checks untrusted forwarded headers.',
+          honeypot: 'filled-by-test',
+        })
+        .expect(202)
+    }
+
+    await request(app.getHttpServer())
+      .post('/contact')
+      .set('X-Forwarded-For', '198.51.100.99')
+      .set('Idempotency-Key', `spoofed-limit-${randomUUID()}`)
+      .send({
+        name: 'Spoofed Limited Visitor',
+        email: 'spoofed-limited@example.com',
+        message: 'This request should be rate limited.',
+        honeypot: 'filled-by-test',
+      })
+      .expect(429)
   })
 
   afterEach(async () => {

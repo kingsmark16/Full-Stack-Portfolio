@@ -1,5 +1,10 @@
 import type { Metadata } from 'next'
-import { getPortfolio } from '@/lib/portfolio'
+import { notFound } from 'next/navigation'
+import {
+  getPortfolio,
+  PortfolioNotFoundError,
+  type PortfolioPayload,
+} from '@/lib/portfolio'
 import { ContactForm } from './contact-form'
 import { RetryButton } from './retry-button'
 import { TerminalEffects } from './terminal-effects'
@@ -13,15 +18,31 @@ const webOrigin = (process.env.WEB_ORIGIN ?? 'http://localhost:3000').replace(
   '',
 )
 
-const markAngelAscii = String.raw`
- __  __   _   ___ _  __   _   _  _  ___ ___ _
-|  \/  | /_\ | _ \ |/ /  /_\ | \| |/ __| __| |
-| |\/| |/ _ \|   / ' <  / _ \| .\` | (_ | _|| |__
-|_|  |_/_/ \_\_|_\_\_|\_\/_/ \_\_|\_|\___|___|____|
-`
+function terminalToken(value: string): string {
+  const token = value
+    .trim()
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .toUpperCase()
+
+  return token || 'PUBLIC'
+}
 
 export async function generateMetadata(): Promise<Metadata> {
-  const portfolio = await getPortfolio()
+  let portfolio: PortfolioPayload | null = null
+
+  try {
+    portfolio = await getPortfolio()
+  } catch (error) {
+    if (error instanceof PortfolioNotFoundError) {
+      return {
+        title: 'TERMINAL_ACCESS | Portfolio',
+        description: 'Professional portfolio',
+        alternates: { canonical: `${webOrigin}/` },
+      }
+    }
+  }
+
   const title = portfolio
     ? `TERMINAL_ACCESS | ${portfolio.profile.name}`
     : 'TERMINAL_ACCESS | Portfolio'
@@ -65,7 +86,15 @@ function commandSection(command: string, heading: string, id: string) {
 }
 
 export default async function Home() {
-  const portfolio = await getPortfolio()
+  let portfolio: PortfolioPayload | null = null
+
+  try {
+    portfolio = await getPortfolio()
+  } catch (error) {
+    if (error instanceof PortfolioNotFoundError) {
+      notFound()
+    }
+  }
 
   if (!portfolio) {
     return (
@@ -91,6 +120,7 @@ export default async function Home() {
     services,
     projects,
   } = portfolio
+  const sessionName = terminalToken(profile.name)
 
   return (
     <main className="terminal-page" id="main-content">
@@ -102,7 +132,7 @@ export default async function Home() {
       <div className="terminal-app">
         <div className="terminal-shell stream-in">
           <header className="terminal-header">
-            <span>SYSTEM_SESSION: MARK_ANGEL_ARCHIVE_V4.1</span>
+            <span>SYSTEM_SESSION: {sessionName}_ARCHIVE_V4.1</span>
             <span aria-hidden="true">_ [ ] X</span>
           </header>
 
@@ -141,7 +171,7 @@ export default async function Home() {
             >
               <div>
                 <pre className="ascii-art" aria-hidden="true">
-                  {markAngelAscii}
+                  {profile.name.toUpperCase()}
                 </pre>
                 <p className="whoami-line">
                   <span>PROMPT&gt;</span> WHOAMI

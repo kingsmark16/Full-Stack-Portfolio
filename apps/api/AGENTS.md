@@ -32,6 +32,8 @@ pnpm --filter api test:e2e
 - Add DTO validation at API boundaries. Keep domain objects independent of NestJS and Prisma.
 - Use Prisma only inside API infrastructure code when the data model feature is built.
 - Keep API responses as DTOs or plain objects. Do not expose persistence or domain objects directly.
+- Keep Prisma schema and migrations under `prisma/`, and apply migrations before database backed tests.
+- Validate proxy settings through `src/common/config/`; `TRUST_PROXY_HOPS` is required in production and defaults to zero only in local and test environments.
 
 ## Gotchas
 

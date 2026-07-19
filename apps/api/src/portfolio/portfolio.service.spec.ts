@@ -146,11 +146,43 @@ describe('PortfolioService', () => {
         where: { published: true },
         orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
         take: 100,
+        select: {
+          title: true,
+          slug: true,
+          description: true,
+          imageUrl: true,
+          projectUrl: true,
+          repositoryUrl: true,
+          startMonth: true,
+          endMonth: true,
+          skills: {
+            where: {
+              skill: {
+                published: true,
+              },
+            },
+            orderBy: [
+              { skill: { displayOrder: 'asc' } },
+              { skill: { createdAt: 'asc' } },
+            ],
+            take: 100,
+            select: {
+              skill: {
+                select: {
+                  name: true,
+                  iconUrl: true,
+                  displayOrder: true,
+                  createdAt: true,
+                },
+              },
+            },
+          },
+        },
       }),
     )
   })
 
-  it('AC-2 orders project technologies by their display order', async () => {
+  it('AC-2 orders project technologies by display order and createdAt', async () => {
     profileFindFirst.mockResolvedValue({
       name: 'Mark Angel',
       biography: 'Full stack developer',
@@ -176,8 +208,30 @@ describe('PortfolioService', () => {
         startMonth: null,
         endMonth: null,
         skills: [
-          { skill: { name: 'Zod', iconUrl: null, displayOrder: 2 } },
-          { skill: { name: 'Next.js', iconUrl: null, displayOrder: 1 } },
+          {
+            skill: {
+              name: 'Zod',
+              iconUrl: null,
+              displayOrder: 2,
+              createdAt: new Date('2026-01-02T00:00:00.000Z'),
+            },
+          },
+          {
+            skill: {
+              name: 'Tailwind CSS',
+              iconUrl: null,
+              displayOrder: 1,
+              createdAt: new Date('2026-01-02T00:00:00.000Z'),
+            },
+          },
+          {
+            skill: {
+              name: 'Next.js',
+              iconUrl: null,
+              displayOrder: 1,
+              createdAt: new Date('2026-01-01T00:00:00.000Z'),
+            },
+          },
         ],
       },
     ])
@@ -186,6 +240,7 @@ describe('PortfolioService', () => {
 
     expect(result.projects[0]?.skills).toEqual([
       { name: 'Next.js', iconUrl: null },
+      { name: 'Tailwind CSS', iconUrl: null },
       { name: 'Zod', iconUrl: null },
     ])
   })

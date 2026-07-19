@@ -106,12 +106,23 @@ export class PortfolioService {
             startMonth: true,
             endMonth: true,
             skills: {
+              where: {
+                skill: {
+                  published: true,
+                },
+              },
+              orderBy: [
+                { skill: { displayOrder: 'asc' } },
+                { skill: { createdAt: 'asc' } },
+              ],
+              take: 100,
               select: {
                 skill: {
                   select: {
                     name: true,
                     iconUrl: true,
                     displayOrder: true,
+                    createdAt: true,
                   },
                 },
               },
@@ -130,10 +141,15 @@ export class PortfolioService {
       projects: projects.map((project) => ({
         ...project,
         skills: project.skills
-          .sort(
-            (first, second) =>
-              first.skill.displayOrder - second.skill.displayOrder,
-          )
+          .sort((first, second) => {
+            const displayOrderDifference =
+              first.skill.displayOrder - second.skill.displayOrder
+
+            return (
+              displayOrderDifference ||
+              first.skill.createdAt.getTime() - second.skill.createdAt.getTime()
+            )
+          })
           .map(({ skill }) => ({
             name: skill.name,
             iconUrl: skill.iconUrl,

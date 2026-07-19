@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { PortfolioPayload } from './portfolio'
-import { getPortfolio } from './portfolio'
+import { getPortfolio, PortfolioNotFoundError } from './portfolio'
 
 const populatedPayload = {
   profile: {
@@ -67,6 +67,27 @@ describe('getPortfolio', () => {
   it('AC-8 returns null when the portfolio API responds with an error', async () => {
     const fetchMock = vi.fn<typeof fetch>()
     fetchMock.mockResolvedValue(new Response(null, { status: 503 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(getPortfolio()).resolves.toBeNull()
+  })
+
+  it('preserves an unpublished profile as a not found error', async () => {
+    const fetchMock = vi.fn<typeof fetch>()
+    fetchMock.mockResolvedValue(new Response(null, { status: 404 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(getPortfolio()).rejects.toBeInstanceOf(PortfolioNotFoundError)
+  })
+
+  it('returns null when a successful API response has an invalid shape', async () => {
+    const fetchMock = vi.fn<typeof fetch>()
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ profile: { name: 'Incomplete' } }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    )
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(getPortfolio()).resolves.toBeNull()

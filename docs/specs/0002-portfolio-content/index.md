@@ -1,6 +1,6 @@
 # Portfolio content
 
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 
