@@ -36,16 +36,24 @@ Define the content, ownership, contact, media, and publishing records that suppo
   - [x] Build the public portfolio API and rate limits, **AC-2**, **AC-6**
   - [x] Build the public page states and SEO behavior, **AC-3**, **AC-4**
   - [x] Build contact persistence, email outbox, and abuse controls, **AC-5**, **AC-6**
-- [ ] Verify it: `/check verify portfolio content`
+- [x] Verify it: `/check verify portfolio content`
 - [x] Test it: `/test portfolio content`
       Code in `apps/api/prisma/`, `apps/api/src/portfolio/`, and `apps/web/src/`
 
-### 4. Design system and UI foundation · needs a decision
+### 4. Design system and UI foundation · in-progress
 
 Create one visual language and a shared set of accessible interface patterns for the public site and private dashboard.
 **Done when:** the design direction covers type, color, spacing, layout, motion, content states, and responsive components that meet WCAG 2.2 AA for focus, keyboard use, labels, contrast, and structure.
 
-- [ ] Design it (spec): `/architect design system and UI foundation`
+- [x] Design it (spec): `/architect design system and UI foundation`
+      [Spec 0002](../specs/_root/0002-design-system-ui-foundation/index.md)
+- [x] Build it: `/develop design system and UI foundation`
+  - [x] Define the mandatory Cyber Noir Terminal tokens and shared primitives, **AC-1**, **AC-3**, **AC-4**
+  - [x] Map real API content into conditional archive sections and accessible media fallbacks, **AC-2**, **AC-6**, **AC-7**
+  - [x] Apply the responsive visual system to the public page, navigation, content sections, and contact flow, **AC-3**, **AC-5**, **AC-8**
+  - [x] Add reduced motion, accessibility, visual state, and browser coverage, **AC-3**, **AC-4**, **AC-8**
+  - [ ] Verify it: `/check verify design system and UI foundation`
+- [x] Test it: `/test design system and UI foundation`
 
 ### 5. Connected portfolio skeleton · in-progress
 

@@ -21,10 +21,8 @@ export function ContactForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-
     const form = event.currentTarget
     const formData = new FormData(form)
-
     const payload = {
       name: getTextValue(formData, 'name'),
       email: getTextValue(formData, 'email'),
@@ -32,10 +30,8 @@ export function ContactForm() {
       honeypot: getTextValue(formData, 'honeypot'),
     }
 
-    if (!idempotencyKeyRef.current) {
+    if (!idempotencyKeyRef.current)
       idempotencyKeyRef.current = crypto.randomUUID()
-    }
-
     setState('submitting')
     setError('')
 
@@ -52,7 +48,6 @@ export function ContactForm() {
       if (!response.ok) {
         const body: unknown = await response.json().catch(() => null)
         const problem = body as ProblemResponse
-
         setError(
           typeof problem.detail === 'string'
             ? problem.detail
@@ -71,60 +66,55 @@ export function ContactForm() {
     }
   }
 
+  const statusMessage =
+    state === 'success'
+      ? 'Your message was accepted. Thank you. Channel is open.'
+      : state === 'error'
+        ? error
+        : 'I usually reply by email.'
+
   return (
     <form
+      className="contact-form"
       onSubmit={handleSubmit}
-      className="mt-8 max-w-2xl space-y-5"
       aria-describedby="contact-status"
     >
-      <div>
-        <label htmlFor="contact-name" className="block text-sm font-medium">
-          Name
-        </label>
+      <div className="form-field">
+        <label htmlFor="contact-name">ENTITY_ID_NAME</label>
         <input
           id="contact-name"
           name="name"
           type="text"
+          placeholder="TYPE_NAME_HERE..."
           required
           maxLength={120}
           autoComplete="name"
-          className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-zinc-100 outline-none focus:border-zinc-300"
         />
       </div>
-
-      <div>
-        <label htmlFor="contact-email" className="block text-sm font-medium">
-          Email
-        </label>
+      <div className="form-field">
+        <label htmlFor="contact-email">DNS_ADDRESS_EMAIL</label>
         <input
           id="contact-email"
           name="email"
           type="email"
+          placeholder="USER@NETWORK.COM"
           required
           maxLength={320}
           autoComplete="email"
-          className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-zinc-100 outline-none focus:border-zinc-300"
         />
       </div>
-
-      <div>
-        <label htmlFor="contact-message" className="block text-sm font-medium">
-          Message
-        </label>
+      <div className="form-field">
+        <label htmlFor="contact-message">TRANSMIT_MESSAGE</label>
         <textarea
           id="contact-message"
           name="message"
+          placeholder="TRANSMIT_DATA..."
           required
           maxLength={5000}
-          rows={6}
-          className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-zinc-100 outline-none focus:border-zinc-300"
+          rows={4}
         />
       </div>
-
-      <div
-        aria-hidden="true"
-        className="absolute left-[9999px] h-px w-px overflow-hidden"
-      >
+      <div className="honeypot" aria-hidden="true">
         <label htmlFor="contact-honeypot">Website</label>
         <input
           id="contact-honeypot"
@@ -134,27 +124,20 @@ export function ContactForm() {
           autoComplete="off"
         />
       </div>
-
       <button
+        className="terminal-button glitch-hover"
         type="submit"
         disabled={state === 'submitting'}
-        className="rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {state === 'submitting' ? 'Sending...' : 'Send message'}
+        {state === 'submitting' ? 'TRANSMITTING...' : 'TRANSMIT_REQUEST'}
       </button>
-
       <p
         id="contact-status"
+        className={`form-status status-${state}`}
         aria-live="polite"
-        className={
-          state === 'error' ? 'text-sm text-red-400' : 'text-sm text-zinc-400'
-        }
+        role={state === 'error' ? 'alert' : 'status'}
       >
-        {state === 'success'
-          ? 'Your message was accepted. Thank you.'
-          : state === 'error'
-            ? error
-            : 'I usually reply by email.'}
+        {statusMessage}
       </p>
     </form>
   )
