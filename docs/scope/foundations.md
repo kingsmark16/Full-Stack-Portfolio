@@ -36,7 +36,7 @@ Define the content, ownership, contact, media, and publishing records that suppo
   - [x] Build the public portfolio API and rate limits, **AC-2**, **AC-6**
   - [x] Build the public page states and SEO behavior, **AC-3**, **AC-4**
   - [x] Build contact persistence, email outbox, and abuse controls, **AC-5**, **AC-6**
-- [ ] Verify it: `/check verify portfolio content`
+- [x] Verify it: `/check verify portfolio content`
 - [x] Test it: `/test portfolio content`
       Code in `apps/api/prisma/`, `apps/api/src/portfolio/`, and `apps/web/src/`
 
