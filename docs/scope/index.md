@@ -11,10 +11,10 @@ A production portfolio for hiring managers and technical interviewers. It presen
 | --- | ------------------------------- | --------------- | ----------- |
 | 1   | Stack and architecture          | Foundation      | done        |
 | 2   | Coding standards and tooling    | Foundation      | done        |
-| 3   | Portfolio data model            | Foundation      | in-progress |
+| 3   | Portfolio data model            | Foundation      | done        |
 | 4   | Design system and UI foundation | Foundation      | done        |
-| 5   | Connected portfolio skeleton    | Skeleton        | in-progress |
-| 6   | Home page                       | Visitor journey | planned     |
+| 5   | Connected portfolio skeleton    | Skeleton        | done        |
+| 6   | Home page                       | Visitor journey | in-progress |
 | 7   | About and resume page           | Visitor journey | planned     |
 | 8   | Services page                   | Visitor journey | planned     |
 | 9   | Project discovery               | Visitor journey | planned     |
@@ -33,9 +33,9 @@ A production portfolio for hiring managers and technical interviewers. It presen
 
 ## Epic status
 
-[Foundations](foundations.md): 4 features are done, 1 is in progress, and 0 are planned. Together they establish the monorepo, shared decisions, and a working connection across the site, API, and stored data.
+[Foundations](foundations.md): 5 features are done, 0 are in progress, and 0 are planned. Together they establish the monorepo, shared decisions, and a working connection across the site, API, and stored data.
 
-[Visitor journey](visitor.md): 6 planned features let a hiring manager understand the owner, inspect relevant work, download a resume, and make contact.
+[Visitor journey](visitor.md): 1 feature is in progress and 5 are planned. Together they let a hiring manager understand the owner, inspect relevant work, download a resume, and make contact.
 
 [Owner journey](owner.md): 7 planned features let the owner sign in and manage all public content, media, the resume, and contact messages.
 

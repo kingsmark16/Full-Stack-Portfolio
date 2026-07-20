@@ -58,7 +58,21 @@ function createShader(
 
 export function TerminalEffects() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [effectsEnabled, setEffectsEnabled] = useState(true)
+  const [effectsEnabled, setEffectsEnabled] = useState(false)
+
+  useEffect(() => {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const syncMotionPreference = () => {
+      setEffectsEnabled(!reducedMotion.matches)
+    }
+
+    syncMotionPreference()
+    reducedMotion.addEventListener('change', syncMotionPreference)
+
+    return () => {
+      reducedMotion.removeEventListener('change', syncMotionPreference)
+    }
+  }, [])
 
   useEffect(() => {
     if (!effectsEnabled) return
@@ -180,11 +194,13 @@ export function TerminalEffects() {
       <button
         type="button"
         className="effects-toggle"
-        aria-label="Toggle terminal effects"
+        aria-label={
+          effectsEnabled ? 'Pause terminal effects' : 'Resume terminal effects'
+        }
         aria-pressed={effectsEnabled}
         onClick={() => setEffectsEnabled((enabled) => !enabled)}
       >
-        EFFECTS: {effectsEnabled ? 'ON' : 'OFF'}
+        {effectsEnabled ? 'Pause terminal effects' : 'Resume terminal effects'}
       </button>
     </div>
   )

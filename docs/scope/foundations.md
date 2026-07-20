@@ -55,10 +55,12 @@ Create one visual language and a shared set of accessible interface patterns for
   - [x] Verify it: `/check verify design system and UI foundation`
 - [x] Test it: `/test design system and UI foundation`
 
-### 5. Connected portfolio skeleton · in-progress
+### 5. Connected portfolio skeleton · done
 
 Prove the core path across stored data, the API, and the public interface before full page work starts.
 **Done when:** one real portfolio record can be stored, returned through the API, and rendered by the site, with loading, empty, and error states and clean local builds.
 
 - [x] Build it: `/develop connected portfolio skeleton`
       Code in `apps/api/`, `apps/web/`, and `e2e/`
+- [x] Verify it: `/check verify connected portfolio skeleton`
+- [x] Test it: `/test connected portfolio skeleton`

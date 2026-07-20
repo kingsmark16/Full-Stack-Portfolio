@@ -6,6 +6,97 @@ test('loads the public site', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Mark Angel' })).toBeVisible()
 })
 
+test('AC-1 renders the published identity and contact action', async ({
+  page,
+}) => {
+  await page.goto('/')
+
+  await expect(page.getByRole('heading', { name: 'Mark Angel' })).toBeVisible()
+  await expect(
+    page.getByText('Full stack developer', { exact: true }),
+  ).toBeVisible()
+  await expect(
+    page.getByText('Full stack developer building useful web experiences.', {
+      exact: true,
+    }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('link', { name: 'RUN ./init_sequence' }),
+  ).toHaveAttribute('href', '#contact')
+})
+
+test('AC-2 and AC-4 hide empty optional sections and navigation links', async ({
+  page,
+}) => {
+  await page.goto('/')
+
+  for (const section of ['projects', 'skills', 'services']) {
+    await expect(page.locator(`#${section}`)).toHaveCount(0)
+    await expect(page.locator(`a[href="#${section}"]`)).toHaveCount(0)
+  }
+
+  await expect(page.locator('#contact')).toBeVisible()
+})
+
+test('AC-5 provides an accessible avatar fallback when no image is published', async ({
+  page,
+}) => {
+  await page.goto('/')
+
+  await expect(
+    page.getByRole('img', { name: 'Mark Angel avatar fallback' }),
+  ).toBeVisible()
+})
+
+test('AC-7 exposes semantic landmarks and a single page heading', async ({
+  page,
+}) => {
+  await page.goto('/')
+
+  await expect(page.getByRole('main')).toBeVisible()
+  await expect(page.locator('header')).toBeVisible()
+  await expect(
+    page.getByRole('navigation', { name: 'Primary navigation' }),
+  ).toBeVisible()
+  await expect(page.locator('footer')).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
+  await expect(
+    page.getByRole('link', { name: 'Skip to archive content' }),
+  ).toHaveAttribute('href', '#terminal-content')
+})
+
+test('AC-8 emits fallback metadata and Person JSON LD', async ({ page }) => {
+  await page.goto('/')
+
+  await expect(page).toHaveTitle('Mark Angel | Full Stack Developer')
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+    'content',
+    'Full stack developer building useful web experiences.',
+  )
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    'href',
+    'http://localhost:3000/',
+  )
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+    'content',
+    'http://localhost:3000/og-default.svg',
+  )
+
+  const jsonLd: unknown = JSON.parse(
+    (await page.locator('script[type="application/ld+json"]').textContent()) ??
+      '{}',
+  )
+
+  expect(jsonLd).toMatchObject({
+    '@type': 'Person',
+    name: 'Mark Angel',
+    url: 'http://localhost:3000/',
+    image: 'http://localhost:3000/og-default.svg',
+    jobTitle: 'Full Stack Developer',
+    description: 'Full stack developer building useful web experiences.',
+  })
+})
+
 test('proxies an API request to NestJS', async ({ page }) => {
   const response = await page.goto('/api')
 
@@ -43,11 +134,15 @@ test('keeps terminal effects decorative behind readable content', async ({
 }) => {
   await page.goto('/')
 
-  const effectLayer = page.locator('canvas.shader-canvas')
+  const effectLayer = page.locator(
+    'main.terminal-page:not([aria-busy="true"]) canvas.shader-canvas',
+  )
   await expect(effectLayer).toHaveAttribute('aria-hidden', 'true')
 
   const layers = await page.evaluate(() => {
-    const canvas = document.querySelector('canvas.shader-canvas')
+    const canvas = document.querySelector(
+      'main.terminal-page:not([aria-busy="true"]) canvas.shader-canvas',
+    )
     const app = document.querySelector('.terminal-app')
 
     if (!canvas || !app) {
@@ -76,9 +171,16 @@ test('freezes decorative overlays when reduced motion is requested', async ({
   await page.goto('/')
 
   const overlayState = await page.evaluate(() => ({
-    scanline: getComputedStyle(document.querySelector('.scanline')!).display,
-    flicker: getComputedStyle(document.querySelector('.flicker-overlay')!)
-      .display,
+    scanline: getComputedStyle(
+      document.querySelector(
+        'main.terminal-page:not([aria-busy="true"]) .scanline',
+      )!,
+    ).display,
+    flicker: getComputedStyle(
+      document.querySelector(
+        'main.terminal-page:not([aria-busy="true"]) .flicker-overlay',
+      )!,
+    ).display,
   }))
 
   expect(overlayState).toEqual({ scanline: 'none', flicker: 'none' })
@@ -88,22 +190,29 @@ test('freezes decorative overlays when reduced motion is requested', async ({
 test('allows terminal effects to be paused and resumed', async ({ page }) => {
   await page.goto('/')
 
-  const toggle = page.getByRole('button', {
-    name: 'Toggle terminal effects',
+  const pauseButton = page.getByRole('button', {
+    name: 'Pause terminal effects',
   })
-  await expect(toggle).toHaveAttribute('aria-pressed', 'true')
+  await expect(pauseButton).toHaveAttribute('aria-pressed', 'true')
 
   const flickerDuration = await page
-    .locator('.flicker-overlay')
+    .locator('main.terminal-page:not([aria-busy="true"]) .flicker-overlay')
     .evaluate((element) => getComputedStyle(element).animationDuration)
   expect(flickerDuration).toBe('0.5s')
 
-  await toggle.click()
-  await expect(toggle).toHaveAttribute('aria-pressed', 'false')
-  await expect(page.locator('.scanline')).toHaveCSS('display', 'none')
+  await pauseButton.click()
+  const resumeButton = page.getByRole('button', {
+    name: 'Resume terminal effects',
+  })
+  await expect(resumeButton).toHaveAttribute('aria-pressed', 'false')
+  await expect(
+    page.locator('main.terminal-page:not([aria-busy="true"]) .scanline'),
+  ).toHaveCSS('display', 'none')
 
-  await toggle.click()
-  await expect(toggle).toHaveAttribute('aria-pressed', 'true')
+  await resumeButton.click()
+  await expect(
+    page.getByRole('button', { name: 'Pause terminal effects' }),
+  ).toHaveAttribute('aria-pressed', 'true')
 })
 
 test('keeps the archive usable on a narrow viewport', async ({ page }) => {
@@ -148,10 +257,11 @@ test('AC-10 keeps the archive readable when WebGL is unavailable', async ({
 
   await expect(page.getByRole('heading', { name: 'Mark Angel' })).toBeVisible()
   await expect(
-    page.getByRole('button', { name: 'Toggle terminal effects' }),
+    page.getByRole('button', { name: 'Pause terminal effects' }),
   ).toBeVisible()
-  await expect(page.locator('canvas.shader-canvas')).toHaveAttribute(
-    'aria-hidden',
-    'true',
-  )
+  await expect(
+    page.locator(
+      'main.terminal-page:not([aria-busy="true"]) canvas.shader-canvas',
+    ),
+  ).toHaveAttribute('aria-hidden', 'true')
 })
