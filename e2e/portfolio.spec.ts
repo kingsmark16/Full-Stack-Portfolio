@@ -25,16 +25,30 @@ test('AC-1 renders the published identity and contact action', async ({
   ).toHaveAttribute('href', '#contact')
 })
 
-test('AC-2 and AC-4 hide empty optional sections and navigation links', async ({
+test('AC-2 and AC-4 render published optional sections and navigation links', async ({
   page,
 }) => {
   await page.goto('/')
 
   for (const section of ['projects', 'skills', 'services']) {
-    await expect(page.locator(`#${section}`)).toHaveCount(0)
-    await expect(page.locator(`a[href="#${section}"]`)).toHaveCount(0)
+    await expect(page.locator(`#${section}`)).toBeVisible()
+    await expect(page.locator(`a[href="#${section}"]`).first()).toBeVisible()
   }
 
+  await expect(
+    page.getByText('Full Stack Portfolio', { exact: true }),
+  ).toBeVisible()
+  await expect(page.locator('#skills li span')).toHaveText([
+    'TypeScript',
+    'Next.js',
+    'NestJS',
+    'PostgreSQL',
+    'Prisma',
+    'Playwright',
+  ])
+  await expect(
+    page.getByText('Product-minded engineering', { exact: true }),
+  ).toBeVisible()
   await expect(page.locator('#contact')).toBeVisible()
 })
 
@@ -54,7 +68,9 @@ test('AC-7 exposes semantic landmarks and a single page heading', async ({
   await page.goto('/')
 
   await expect(page.getByRole('main')).toBeVisible()
-  await expect(page.locator('header')).toBeVisible()
+  await expect(
+    page.locator('main.terminal-page:not([aria-busy="true"]) header'),
+  ).toBeVisible()
   await expect(
     page.getByRole('navigation', { name: 'Primary navigation' }),
   ).toBeVisible()
