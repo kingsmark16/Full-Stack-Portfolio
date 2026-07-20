@@ -24,7 +24,7 @@ Capture conventions from the real scaffold, then add the checks that every later
 - [x] Check it runs cleanly: `/test tooling`
       [Tooling spec](../specs/_root/0001-tooling.md) · tooling in `package.json`, `.prettierrc.json`, `.prettierignore`, `lint-staged.config.mjs`, `commitlint.config.mjs`, `.husky/`, and `.github/`
 
-### 3. Portfolio data model · in-progress
+### 3. Portfolio data model · done
 
 Define the content, ownership, contact, media, and publishing records that support both public pages and the dashboard without costly redesign.
 **Done when:** the model supports one owner, profile details, skills, experience, education, certifications, services, projects, media, the current resume, and contact messages with clear relationships and deletion rules.
@@ -40,7 +40,7 @@ Define the content, ownership, contact, media, and publishing records that suppo
 - [x] Test it: `/test portfolio content`
       Code in `apps/api/prisma/`, `apps/api/src/portfolio/`, and `apps/web/src/`
 
-### 4. Design system and UI foundation · in-progress
+### 4. Design system and UI foundation · done
 
 Create one visual language and a shared set of accessible interface patterns for the public site and private dashboard.
 **Done when:** the design direction covers type, color, spacing, layout, motion, content states, and responsive components that meet WCAG 2.2 AA for focus, keyboard use, labels, contrast, and structure.
@@ -52,7 +52,7 @@ Create one visual language and a shared set of accessible interface patterns for
   - [x] Map real API content into conditional archive sections and accessible media fallbacks, **AC-2**, **AC-6**, **AC-7**
   - [x] Apply the responsive visual system to the public page, navigation, content sections, and contact flow, **AC-3**, **AC-5**, **AC-8**
   - [x] Add reduced motion, accessibility, visual state, and browser coverage, **AC-3**, **AC-4**, **AC-8**
-  - [ ] Verify it: `/check verify design system and UI foundation`
+  - [x] Verify it: `/check verify design system and UI foundation`
 - [x] Test it: `/test design system and UI foundation`
 
 ### 5. Connected portfolio skeleton · in-progress
@@ -60,5 +60,5 @@ Create one visual language and a shared set of accessible interface patterns for
 Prove the core path across stored data, the API, and the public interface before full page work starts.
 **Done when:** one real portfolio record can be stored, returned through the API, and rendered by the site, with loading, empty, and error states and clean local builds.
 
-- [ ] Build it: `/develop connected portfolio skeleton`
+- [x] Build it: `/develop connected portfolio skeleton`
       Code in `apps/api/`, `apps/web/`, and `e2e/`

@@ -30,6 +30,7 @@ pnpm --filter web test:e2e
 - Access API data through `/api` in browser code. Do not access the database directly from this workspace.
 - Keep shared UI state separate from server data. Zustand is only for UI state when it spans components.
 - Use Zod for web forms and configuration validation when those features are added.
+- Design system: build all UI to `design.md` (art direction and the maximalist product bar); token values live in CSS.
 
 ## Gotchas
 
