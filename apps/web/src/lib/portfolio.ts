@@ -73,6 +73,18 @@ export class PortfolioNotFoundError extends Error {
   }
 }
 
+export function isSafeExternalUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    return (
+      url.protocol === 'https:' ||
+      (process.env.NODE_ENV !== 'production' && url.protocol === 'http:')
+    )
+  } catch {
+    return false
+  }
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
@@ -93,9 +105,15 @@ function isNullableString(value: unknown): value is string | null {
   return value === null || isString(value)
 }
 
+function isNullableSafeExternalUrl(value: unknown): value is string | null {
+  return value === null || (isString(value) && isSafeExternalUrl(value))
+}
+
 function isPortfolioSkill(value: unknown): value is PortfolioSkill {
   return (
-    isRecord(value) && isString(value.name) && isNullableString(value.iconUrl)
+    isRecord(value) &&
+    isString(value.name) &&
+    isNullableSafeExternalUrl(value.iconUrl)
   )
 }
 
@@ -104,10 +122,10 @@ function isPortfolioProfile(value: unknown): value is PortfolioProfile {
     isRecord(value) &&
     isString(value.name) &&
     isString(value.biography) &&
-    isNullableString(value.avatarUrl) &&
+    isNullableSafeExternalUrl(value.avatarUrl) &&
     isString(value.contactEmail) &&
     isNullableString(value.phoneNumber) &&
-    isNullableString(value.resumeUrl)
+    isNullableSafeExternalUrl(value.resumeUrl)
   )
 }
 
@@ -144,7 +162,7 @@ function isPortfolioCertification(
     isString(value.name) &&
     isString(value.issuingOrganization) &&
     isNumber(value.issueYear) &&
-    isNullableString(value.credentialUrl)
+    isNullableSafeExternalUrl(value.credentialUrl)
   )
 }
 
@@ -153,7 +171,7 @@ function isPortfolioService(value: unknown): value is PortfolioService {
     isRecord(value) &&
     isString(value.name) &&
     isString(value.description) &&
-    isNullableString(value.iconUrl)
+    isNullableSafeExternalUrl(value.iconUrl)
   )
 }
 
@@ -163,9 +181,9 @@ function isPortfolioProject(value: unknown): value is PortfolioProject {
     isString(value.title) &&
     isString(value.slug) &&
     isString(value.description) &&
-    isNullableString(value.imageUrl) &&
-    isNullableString(value.projectUrl) &&
-    isNullableString(value.repositoryUrl) &&
+    isNullableSafeExternalUrl(value.imageUrl) &&
+    isNullableSafeExternalUrl(value.projectUrl) &&
+    isNullableSafeExternalUrl(value.repositoryUrl) &&
     isNullableString(value.startMonth) &&
     isNullableString(value.endMonth) &&
     Array.isArray(value.skills) &&
@@ -206,11 +224,8 @@ export async function getPortfolio(): Promise<PortfolioPayload | null> {
 
   try {
     const response = await fetch(`${apiInternalUrl}/portfolio`, {
+      cache: 'no-store',
       signal: controller.signal,
-      next: {
-        revalidate: 60,
-        tags: ['portfolio'],
-      },
     })
 
     if (response.status === 404) {
