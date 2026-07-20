@@ -140,6 +140,8 @@ export default async function Home() {
 
   const { profile, skills, services } = portfolio
   const projects = portfolio.projects.slice(0, 5)
+  const skillGroupCount = Math.min(3, Math.max(skills.length, 1))
+  const skillsPerGroup = Math.ceil(skills.length / skillGroupCount)
   const sessionName = terminalToken(profile.name)
   const initials = profileInitials(profile.name)
   const avatarUrl =
@@ -355,9 +357,10 @@ export default async function Home() {
                   'skills-title',
                 )}
                 <div className="skill-specimens terminal-border">
-                  {[0, 1, 2].map((group) => {
-                    const groupSkills = skills.filter(
-                      (_, index) => index % 3 === group,
+                  {Array.from({ length: skillGroupCount }, (_, group) => {
+                    const groupSkills = skills.slice(
+                      group * skillsPerGroup,
+                      (group + 1) * skillsPerGroup,
                     )
                     return groupSkills.length > 0 ? (
                       <div className="specimen-group" key={group}>

@@ -2,19 +2,19 @@
 
 This journey is complete when a hiring manager can understand the owner, find relevant work, inspect evidence, download the current resume, and send a qualified message.
 
-### 6. Home page · in-progress
+### 6. Home page · done
 
 Give visitors a fast, credible introduction and clear routes to projects, services, background, and contact.
 **Done when:** the page presents the owner's role, value, featured work, core skills, and calls to action from real API content; it handles responsive layout, loading, empty, and error states and meets the public quality targets.
 
 - [x] Design it (spec): `/architect home page`
-- [ ] Build it: `/develop home page`
+- [x] Build it: `/develop home page`
   - [x] Wire fresh portfolio data and exact loading and error behavior, **AC-1**, **AC-5**, **AC-6**
   - [x] Build anchored hero, project, skill, service, and contact sections, **AC-2**, **AC-3**, **AC-4**, **AC-5**
   - [x] Apply responsive Cyber Noir styling, accessibility, media fallbacks, and motion controls, **AC-5**, **AC-7**
   - [x] Add metadata, canonical URL, Person JSON LD, and Open Graph fallback, **AC-8**
-- [ ] Verify it: `/check verify home page`
-- [ ] Test it: `/test home page`
+- [x] Verify it: `/check verify home page`
+- [x] Test it: `/test home page`
       [Spec 0001](../specs/web/0001-home-page/index.md) · code in `apps/web/`
 
 ### 7. About and resume page · needs a decision
