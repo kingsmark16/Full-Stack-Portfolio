@@ -6,7 +6,7 @@ import {
 } from '@/lib/portfolio'
 import { ContactForm } from './contact-form'
 import { RetryButton } from './retry-button'
-import { TerminalEffects } from './terminal-effects'
+import { SiteNavigation } from './site-navigation'
 
 /* eslint-disable @next/next/no-img-element -- API supplied media URLs cannot use a fixed remote host allowlist. */
 
@@ -44,25 +44,42 @@ function resolveWebOrigin(): string {
 
 const webOrigin = resolveWebOrigin()
 
-function terminalToken(value: string): string {
-  const token = value
-    .trim()
-    .replace(/[^a-zA-Z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-    .toUpperCase()
-
-  return token || 'PUBLIC'
-}
-
 function profileInitials(name: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean)
-  const initials = words
+  const initials = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
     .slice(0, 2)
     .map((word) => word[0])
     .join('')
     .toUpperCase()
 
   return initials || 'MA'
+}
+
+function formatMonth(value: string): string {
+  const [year, month] = value.split('-').map(Number)
+  return new Intl.DateTimeFormat('en', {
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(Date.UTC(year, month - 1, 1)))
+}
+
+function formatExperienceDates(
+  startMonth: string,
+  endMonth: string | null,
+  current: boolean,
+): string {
+  const endLabel = current || !endMonth ? 'Present' : formatMonth(endMonth)
+  return `${formatMonth(startMonth)} to ${endLabel}`
+}
+
+function formatEducationDates(
+  startYear: number,
+  endYear: number | null,
+  current: boolean,
+): string {
+  return `${startYear} to ${current || !endYear ? 'Present' : endYear}`
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -99,24 +116,27 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-function commandSection(command: string, heading: string, id: string) {
+function SectionHeading({
+  title,
+  description,
+  id,
+}: {
+  title: string
+  description: string
+  id: string
+}) {
   return (
-    <div className="command-heading">
-      <span>PROMPT&gt;</span>
-      <h2 id={id}>{command}</h2>
-      <div aria-hidden="true" />
-      <p>{heading}</p>
-    </div>
+    <header className="section-heading">
+      <h2 id={id}>{title}</h2>
+      <p>{description}</p>
+    </header>
   )
 }
 
 function unavailablePage() {
   return (
-    <main className="terminal-error" id="main-content">
-      <TerminalEffects />
-      <section className="terminal-error-panel" aria-labelledby="error-title">
-        <div className="terminal-header">SYSTEM_ALERT // CONNECTION_LOST</div>
-        <p className="terminal-secondary">PROMPT&gt; RETRY_CONNECTION</p>
+    <main className="public-page" id="main-content">
+      <section className="page-state" aria-labelledby="error-title">
         <h1 id="error-title">Content is unavailable</h1>
         <p>The portfolio could not be loaded right now.</p>
         <RetryButton />
@@ -138,11 +158,9 @@ export default async function Home() {
     return unavailablePage()
   }
 
-  const { profile, skills, services } = portfolio
+  const { profile, skills, services, experience, education, certifications } =
+    portfolio
   const projects = portfolio.projects.slice(0, 5)
-  const skillGroupCount = Math.min(3, Math.max(skills.length, 1))
-  const skillsPerGroup = Math.ceil(skills.length / skillGroupCount)
-  const sessionName = terminalToken(profile.name)
   const initials = profileInitials(profile.name)
   const avatarUrl =
     profile.avatarUrl && isSafeExternalUrl(profile.avatarUrl)
@@ -157,315 +175,348 @@ export default async function Home() {
     jobTitle: 'Full Stack Developer',
     description: profile.biography.replace(/\s+/g, ' ').trim().slice(0, 160),
   }
+  const navigationLinks = [
+    { href: '#hero', label: 'Home', mobileLabel: 'Home' },
+    ...(projects.length > 0
+      ? [{ href: '#projects', label: 'Projects', mobileLabel: 'Projects' }]
+      : []),
+    ...(experience.length > 0
+      ? [
+          {
+            href: '#experience',
+            label: 'Experience',
+            mobileLabel: 'Experience',
+          },
+        ]
+      : []),
+    ...(skills.length > 0
+      ? [{ href: '#skills', label: 'Skills', mobileLabel: 'Skills' }]
+      : []),
+    ...(education.length > 0
+      ? [{ href: '#education', label: 'Education', mobileLabel: 'Education' }]
+      : []),
+    ...(certifications.length > 0
+      ? [
+          {
+            href: '#certifications',
+            label: 'Certifications',
+            mobileLabel: 'Certifications',
+          },
+        ]
+      : []),
+    ...(services.length > 0
+      ? [{ href: '#services', label: 'Services', mobileLabel: 'Services' }]
+      : []),
+    { href: '#contact', label: 'Connect', mobileLabel: 'Connect' },
+  ]
 
   return (
-    <main className="terminal-page" id="main-content">
-      <TerminalEffects />
-      <a className="skip-link" href="#terminal-content">
-        Skip to archive content
+    <main className="public-page" id="main-content">
+      <a className="skip-link" href="#content">
+        Skip to portfolio content
       </a>
 
-      <div className="terminal-app">
-        <div className="terminal-shell stream-in">
-          <header className="terminal-header">
-            <span>SYSTEM_SESSION: {sessionName}_ARCHIVE_V4.1</span>
-            <span aria-hidden="true">_ [ ] X</span>
-          </header>
+      <header className="site-header">
+        <SiteNavigation links={navigationLinks} />
+      </header>
 
-          <nav
-            className="terminal-nav stream-in"
-            aria-label="Primary navigation"
-          >
-            <a className="glitch-hover" href="#hero">
-              CD /ROOT
-            </a>
-            {projects.length > 0 ? (
-              <a className="glitch-hover" href="#projects">
-                LS /PROJECTS
+      <div className="public-shell" id="content">
+        <section
+          className="hero-section"
+          id="hero"
+          aria-labelledby="hero-title"
+        >
+          <div className="hero-copy">
+            <p>Full stack developer</p>
+            <h1 id="hero-title">{profile.name}</h1>
+            <p>{profile.biography}</p>
+            <div className="hero-actions">
+              {projects.length > 0 ? (
+                <a className="action-link" href="#projects">
+                  View selected work
+                </a>
+              ) : null}
+              <a className="action-link" href="#contact">
+                Start a conversation
               </a>
-            ) : null}
-            {skills.length > 0 ? (
-              <a className="glitch-hover" href="#skills">
-                CAT /SPECS
-              </a>
-            ) : null}
-            {services.length > 0 ? (
-              <a className="glitch-hover" href="#services">
-                LIST /SERVICES
-              </a>
-            ) : null}
-            <a className="glitch-hover" href="#contact">
-              SSH /CONNECT
-            </a>
-          </nav>
-
-          <div className="terminal-content" id="terminal-content">
-            <section
-              className="hero-terminal stream-in"
-              id="hero"
-              aria-labelledby="hero-title"
-            >
-              <div>
-                <pre className="ascii-art" aria-hidden="true">
-                  {profile.name.toUpperCase()}
-                </pre>
-                <p className="whoami-line">
-                  <span>PROMPT&gt;</span> WHOAMI
-                  <span
-                    className="cursor-blink-underscore"
-                    aria-hidden="true"
-                  />
-                </p>
-                <h1 id="hero-title">{profile.name}</h1>
-                <p className="terminal-secondary">Full stack developer</p>
-                <p className="hero-description">{profile.biography}</p>
-                <div className="terminal-actions">
-                  {projects.length > 0 ? (
-                    <a
-                      className="terminal-button glitch-hover"
-                      href="#projects"
-                    >
-                      RUN ./inspect_projects
-                    </a>
-                  ) : null}
-                  <a className="terminal-button glitch-hover" href="#contact">
-                    RUN ./init_sequence
-                  </a>
-                  {profile.resumeUrl && isSafeExternalUrl(profile.resumeUrl) ? (
-                    <a
-                      className="terminal-button glitch-hover"
-                      href={profile.resumeUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      SUDO ./download_cv
-                    </a>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="portrait-terminal terminal-border">
-                <div className="terminal-header">DATA_VISUAL: M_001.JPG</div>
-                {avatarUrl ? (
-                  <img
-                    className="pixelated glitch-hover"
-                    src={avatarUrl}
-                    alt={`${profile.name} portrait`}
-                  />
-                ) : (
-                  <div
-                    className="portrait-fallback"
-                    role="img"
-                    aria-label={`${profile.name} avatar fallback`}
-                  >
-                    <span>{`{ ${initials} }`}</span>
-                    <small>PORTRAIT_ASSET_UNAVAILABLE</small>
-                  </div>
-                )}
-              </div>
-            </section>
-
-            {projects.length > 0 ? (
-              <section
-                className="terminal-section stream-in"
-                id="projects"
-                aria-labelledby="projects-title"
-              >
-                {commandSection(
-                  'LS /PROJECTS -A',
-                  'PROJECT_LOGS',
-                  'projects-title',
-                )}
-                <div className="project-log-grid">
-                  {projects.map((project, index) => (
-                    <article
-                      className="project-log terminal-border glitch-hover"
-                      key={project.slug}
-                    >
-                      {project.imageUrl &&
-                      isSafeExternalUrl(project.imageUrl) ? (
-                        <img
-                          className="pixelated project-preview"
-                          src={project.imageUrl}
-                          alt={`${project.title} project preview`}
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div
-                          className="project-preview project-preview-fallback"
-                          aria-hidden="true"
-                        >
-                          <span>ASSET_MISSING</span>
-                        </div>
-                      )}
-                      <div className="project-log-copy">
-                        <p className="terminal-secondary">
-                          PROJECT_{String(index + 1).padStart(2, '0')}
-                          {' // '}
-                          {project.slug}
-                        </p>
-                        <h3>{project.title}</h3>
-                        <p>{project.description}</p>
-                        {project.skills.length > 0 ? (
-                          <ul
-                            className="terminal-tags"
-                            aria-label={`${project.title} technologies`}
-                          >
-                            {project.skills.map((skill) => (
-                              <li key={skill.name}>{skill.name}</li>
-                            ))}
-                          </ul>
-                        ) : null}
-                        <div className="project-links">
-                          {project.projectUrl &&
-                          isSafeExternalUrl(project.projectUrl) ? (
-                            <a
-                              href={project.projectUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              OPEN_PROJECT ↗
-                            </a>
-                          ) : null}
-                          {project.repositoryUrl &&
-                          isSafeExternalUrl(project.repositoryUrl) ? (
-                            <a
-                              href={project.repositoryUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              SOURCE ↗
-                            </a>
-                          ) : null}
-                        </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-
-            {skills.length > 0 ? (
-              <section
-                className="terminal-section stream-in"
-                id="skills"
-                aria-labelledby="skills-title"
-              >
-                {commandSection(
-                  'CAT /SPECS',
-                  'SYSTEM_SPECIMENS',
-                  'skills-title',
-                )}
-                <div className="skill-specimens terminal-border">
-                  {Array.from({ length: skillGroupCount }, (_, group) => {
-                    const groupSkills = skills.slice(
-                      group * skillsPerGroup,
-                      (group + 1) * skillsPerGroup,
-                    )
-                    return groupSkills.length > 0 ? (
-                      <div className="specimen-group" key={group}>
-                        <p>
-                          GROUP_{String(group + 1).padStart(2, '0')}:
-                          SKILL_INDEX
-                        </p>
-                        <ul>
-                          {groupSkills.map((skill) => (
-                            <li key={skill.name}>
-                              <span>{skill.name}</span>
-                              {skill.iconUrl &&
-                              isSafeExternalUrl(skill.iconUrl) ? (
-                                <img
-                                  src={skill.iconUrl}
-                                  alt=""
-                                  loading="lazy"
-                                />
-                              ) : (
-                                <em>LOADED</em>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : null
-                  })}
-                </div>
-              </section>
-            ) : null}
-
-            {services.length > 0 ? (
-              <section
-                className="terminal-section stream-in"
-                id="services"
-                aria-labelledby="services-title"
-              >
-                {commandSection(
-                  'LIST /SERVICES',
-                  'AVAILABLE_SYSTEMS',
-                  'services-title',
-                )}
-                <div className="supporting-records">
-                  {services.map((service) => (
-                    <article
-                      className="supporting-record terminal-border"
-                      key={service.name}
-                    >
-                      <p className="terminal-secondary">SERVICE_READY</p>
-                      <h3>{service.name}</h3>
-                      <p>{service.description}</p>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-
-            <section
-              className="terminal-contact stream-in"
-              id="contact"
-              aria-labelledby="contact-title"
-            >
-              <div className="contact-terminal terminal-border">
-                <div className="terminal-header terminal-header-amber">
-                  INITIALIZE_COMMS // SECURE_UPLINK
-                </div>
-                <h2 id="contact-title" className="sr-only">
-                  Contact channel
-                </h2>
-                <p className="contact-intro">
-                  &gt;&gt; Have a project in mind or want to start a
-                  conversation?
-                </p>
-                <p className="contact-email">
-                  DIRECT_CHANNEL:{' '}
-                  <a href={`mailto:${profile.contactEmail}`}>
-                    {profile.contactEmail}
-                  </a>
-                </p>
-                <ContactForm />
-              </div>
-            </section>
+              {profile.resumeUrl && isSafeExternalUrl(profile.resumeUrl) ? (
+                <a
+                  className="action-link"
+                  href={profile.resumeUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Download resume
+                </a>
+              ) : null}
+            </div>
           </div>
 
-          <footer className="terminal-footer terminal-header">
-            <span>CHANNEL: {profile.contactEmail}</span>
-            <span>PKT_LOSS: 0%</span>
-            <span>ENCRYPT: API_GUARDED</span>
-            <span>PUBLIC_ARCHIVE</span>
-          </footer>
-        </div>
+          <div className="profile-media">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={`${profile.name} portrait`} />
+            ) : (
+              <div
+                className="avatar-fallback"
+                role="img"
+                aria-label={`${profile.name} avatar fallback`}
+              >
+                {initials}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {projects.length > 0 ? (
+          <section
+            className="content-section"
+            id="projects"
+            aria-labelledby="projects-title"
+          >
+            <SectionHeading
+              id="projects-title"
+              title="Projects"
+              description="Selected work and the technologies behind it."
+            />
+            <div className="record-list">
+              {projects.map((project) => (
+                <article className="record-card" key={project.slug}>
+                  {project.imageUrl && isSafeExternalUrl(project.imageUrl) ? (
+                    <img
+                      className="project-image"
+                      src={project.imageUrl}
+                      alt={`${project.title} project preview`}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="media-fallback" aria-hidden="true">
+                      No project image
+                    </div>
+                  )}
+                  <div>
+                    <h3>{project.title}</h3>
+                    <p>{project.description}</p>
+                    {project.skills.length > 0 ? (
+                      <ul
+                        className="tag-list"
+                        aria-label={`${project.title} technologies`}
+                      >
+                        {project.skills.map((skill) => (
+                          <li key={skill.name}>{skill.name}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    <div className="record-links">
+                      {project.projectUrl &&
+                      isSafeExternalUrl(project.projectUrl) ? (
+                        <a
+                          href={project.projectUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          View project
+                        </a>
+                      ) : null}
+                      {project.repositoryUrl &&
+                      isSafeExternalUrl(project.repositoryUrl) ? (
+                        <a
+                          href={project.repositoryUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          View source
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {experience.length > 0 ? (
+          <section
+            className="content-section"
+            id="experience"
+            aria-labelledby="experience-title"
+          >
+            <SectionHeading
+              id="experience-title"
+              title="Experience"
+              description="A practical timeline of recent work."
+            />
+            <div className="record-list">
+              {experience.map((item) => (
+                <article
+                  className="record-card"
+                  key={`${item.company}-${item.role}-${item.startMonth}`}
+                >
+                  <p className="record-meta">
+                    {formatExperienceDates(
+                      item.startMonth,
+                      item.endMonth,
+                      item.current,
+                    )}
+                  </p>
+                  <h3>{item.role}</h3>
+                  <p>
+                    {item.company}
+                    {item.location ? `, ${item.location}` : ''}
+                  </p>
+                  <p>{item.description}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {skills.length > 0 ? (
+          <section
+            className="content-section"
+            id="skills"
+            aria-labelledby="skills-title"
+          >
+            <SectionHeading
+              id="skills-title"
+              title="Skills"
+              description="Technologies I use to make ideas real."
+            />
+            <ul className="skill-list">
+              {skills.map((skill) => (
+                <li key={skill.name}>
+                  {skill.iconUrl && isSafeExternalUrl(skill.iconUrl) ? (
+                    <img src={skill.iconUrl} alt="" loading="lazy" />
+                  ) : null}
+                  <span>{skill.name}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        {education.length > 0 ? (
+          <section
+            className="content-section"
+            id="education"
+            aria-labelledby="education-title"
+          >
+            <SectionHeading
+              id="education-title"
+              title="Education"
+              description="The ideas and disciplines behind the work."
+            />
+            <div className="record-list">
+              {education.map((item) => (
+                <article
+                  className="record-card"
+                  key={`${item.institution}-${item.degree}`}
+                >
+                  <p className="record-meta">
+                    {formatEducationDates(
+                      item.startYear,
+                      item.endYear,
+                      item.current,
+                    )}
+                  </p>
+                  <h3>{item.degree}</h3>
+                  <p>
+                    {item.institution}
+                    {item.location ? `, ${item.location}` : ''}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {certifications.length > 0 ? (
+          <section
+            className="content-section"
+            id="certifications"
+            aria-labelledby="certifications-title"
+          >
+            <SectionHeading
+              id="certifications-title"
+              title="Certifications"
+              description="Selected credentials and continuing practice."
+            />
+            <div className="record-list">
+              {certifications.map((item) => (
+                <article
+                  className="record-card"
+                  key={`${item.name}-${item.issuingOrganization}`}
+                >
+                  <p className="record-meta">{item.issueYear}</p>
+                  <h3>{item.name}</h3>
+                  <p>{item.issuingOrganization}</p>
+                  {item.credentialUrl &&
+                  isSafeExternalUrl(item.credentialUrl) ? (
+                    <a
+                      href={item.credentialUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      View credential
+                    </a>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {services.length > 0 ? (
+          <section
+            className="content-section"
+            id="services"
+            aria-labelledby="services-title"
+          >
+            <SectionHeading
+              id="services-title"
+              title="Services"
+              description="Ways I can help with thoughtful digital products."
+            />
+            <div className="record-list">
+              {services.map((service) => (
+                <article className="record-card" key={service.name}>
+                  <h3>{service.name}</h3>
+                  <p>{service.description}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <section
+          className="content-section contact-section"
+          id="contact"
+          aria-labelledby="contact-title"
+        >
+          <SectionHeading
+            id="contact-title"
+            title="Connect"
+            description="Have a project in mind or want to start a conversation?"
+          />
+          <p>
+            <a href={`mailto:${profile.contactEmail}`}>
+              {profile.contactEmail}
+            </a>
+          </p>
+          <ContactForm />
+        </section>
+
+        <footer className="site-footer">
+          <p>
+            © {new Date().getFullYear()} {profile.name}
+          </p>
+        </footer>
       </div>
 
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
       />
-
-      <nav className="mobile-terminal-nav" aria-label="Mobile navigation">
-        <a href="#hero">ROOT</a>
-        {projects.length > 0 ? <a href="#projects">LOG</a> : null}
-        {skills.length > 0 ? <a href="#skills">SPEC</a> : null}
-        {services.length > 0 ? <a href="#services">SERV</a> : null}
-        <a href="#contact">SSH</a>
-      </nav>
     </main>
   )
 }
