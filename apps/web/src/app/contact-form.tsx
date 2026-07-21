@@ -68,7 +68,7 @@ export function ContactForm() {
 
   const statusMessage =
     state === 'success'
-      ? 'Your message was accepted. Thank you. Channel is open.'
+      ? 'Your message was accepted. Thank you.'
       : state === 'error'
         ? error
         : 'I usually reply by email.'
@@ -80,35 +80,35 @@ export function ContactForm() {
       aria-describedby="contact-status"
     >
       <div className="form-field">
-        <label htmlFor="contact-name">ENTITY_ID_NAME</label>
+        <label htmlFor="contact-name">Name</label>
         <input
           id="contact-name"
           name="name"
           type="text"
-          placeholder="TYPE_NAME_HERE..."
+          placeholder="Your name"
           required
           maxLength={120}
           autoComplete="name"
         />
       </div>
       <div className="form-field">
-        <label htmlFor="contact-email">DNS_ADDRESS_EMAIL</label>
+        <label htmlFor="contact-email">Email</label>
         <input
           id="contact-email"
           name="email"
           type="email"
-          placeholder="USER@NETWORK.COM"
+          placeholder="you@example.com"
           required
           maxLength={320}
           autoComplete="email"
         />
       </div>
       <div className="form-field">
-        <label htmlFor="contact-message">TRANSMIT_MESSAGE</label>
+        <label htmlFor="contact-message">Message</label>
         <textarea
           id="contact-message"
           name="message"
-          placeholder="TRANSMIT_DATA..."
+          placeholder="Tell me about your project or opportunity."
           required
           maxLength={5000}
           rows={4}
@@ -125,11 +125,11 @@ export function ContactForm() {
         />
       </div>
       <button
-        className="terminal-button glitch-hover"
+        className="contact-submit"
         type="submit"
         disabled={state === 'submitting'}
       >
-        {state === 'submitting' ? 'TRANSMITTING...' : 'TRANSMIT_REQUEST'}
+        {state === 'submitting' ? 'Sending…' : 'Send message'}
       </button>
       <p
         id="contact-status"
