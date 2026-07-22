@@ -1,14 +1,19 @@
 export default function Loading() {
   return (
-    <main
+    <div
       aria-busy="true"
       aria-live="polite"
       className="public-page"
-      id="main-content"
+      role="status"
     >
-      <section className="page-state" aria-label="Loading portfolio">
-        <p>Loading portfolio…</p>
+      <section
+        className="page-state cyber-frame"
+        aria-label="Loading portfolio"
+      >
+        <p className="state-code">SYS.BOOT // WAIT</p>
+        <h2>Loading archive</h2>
+        <p>Loading portfolio...</p>
       </section>
-    </main>
+    </div>
   )
 }

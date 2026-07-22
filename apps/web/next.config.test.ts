@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const originalApiInternalUrl = process.env.API_INTERNAL_URL
+const originalAllowedDevOrigins = process.env.NEXT_ALLOWED_DEV_ORIGINS
 
 async function loadConfig() {
   vi.resetModules()
@@ -13,6 +14,12 @@ afterEach(() => {
     delete process.env.API_INTERNAL_URL
   } else {
     process.env.API_INTERNAL_URL = originalApiInternalUrl
+  }
+
+  if (originalAllowedDevOrigins === undefined) {
+    delete process.env.NEXT_ALLOWED_DEV_ORIGINS
+  } else {
+    process.env.NEXT_ALLOWED_DEV_ORIGINS = originalAllowedDevOrigins
   }
 })
 
@@ -49,5 +56,13 @@ describe('Next.js API rewrites', () => {
         destination: 'https://api.example.com/:path*',
       },
     ])
+  })
+
+  it('allows configured LAN origins for phone testing', async () => {
+    process.env.NEXT_ALLOWED_DEV_ORIGINS = '10.109.120.49, 192.168.1.141 '
+
+    const config = await loadConfig()
+
+    expect(config.allowedDevOrigins).toEqual(['10.109.120.49', '192.168.1.141'])
   })
 })

@@ -77,26 +77,37 @@ test('AC-3 provides an accessible avatar fallback when no image is published', a
   ).toBeVisible()
 })
 
+test('keeps the profile borders fitted to the portrait', async ({ page }) => {
+  await page.goto('/')
+
+  await expect(page.locator('.profile-media')).toBeVisible()
+
+  const portrait = await page.locator('.profile-media').boundingBox()
+  const limeBorder = await page.locator('.media-offset-lime').boundingBox()
+  const violetBorder = await page.locator('.media-offset-violet').boundingBox()
+
+  expect(portrait).not.toBeNull()
+  expect(limeBorder).not.toBeNull()
+  expect(violetBorder).not.toBeNull()
+  expect(limeBorder?.height).toBeCloseTo(portrait?.height ?? 0, 0)
+  expect(violetBorder?.height).toBeCloseTo(portrait?.height ?? 0, 0)
+})
+
 test('AC-4 keeps navigation fixed and toggles it by scroll direction', async ({
   page,
 }) => {
   await page.goto('/')
+  await page.waitForTimeout(100)
 
   const navigation = page.locator('.site-nav')
   await expect(navigation).toHaveCSS('position', 'fixed')
+  await expect(navigation).toHaveAttribute('data-client-ready', 'true')
   await expect(navigation).not.toHaveClass(/site-nav-hidden/)
 
-  await page.evaluate(() => {
-    document.documentElement.style.scrollBehavior = 'auto'
-    window.scrollTo(0, document.body.scrollHeight)
-    window.dispatchEvent(new Event('scroll'))
-  })
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
   await expect(navigation).toHaveClass(/site-nav-hidden/)
 
-  await page.evaluate(() => {
-    window.scrollTo(0, 0)
-    window.dispatchEvent(new Event('scroll'))
-  })
+  await page.evaluate(() => window.scrollTo(0, 0))
   await expect(navigation).not.toHaveClass(/site-nav-hidden/)
 })
 
@@ -171,6 +182,10 @@ test('submits the contact form successfully', async ({ page }) => {
   })
 
   await page.goto('/')
+  await expect(page.locator('.contact-form')).toHaveAttribute(
+    'data-client-ready',
+    'true',
+  )
 
   await page.getByLabel('Name').fill('Test Visitor')
   await page.getByLabel('Email').fill('visitor@example.com')
@@ -189,12 +204,60 @@ test('AC-5 keeps the baseline usable on a narrow viewport', async ({
 }) => {
   await page.setViewportSize({ width: 375, height: 800 })
   await page.goto('/')
+  await page.waitForTimeout(100)
 
   await expect(
     page.getByRole('navigation', { name: 'Mobile navigation' }),
   ).toBeVisible()
   await expect(page.locator('.site-nav-mobile')).toHaveCSS('position', 'fixed')
   await expect(page.locator('.site-nav-mobile')).toHaveCSS('top', '0px')
+  await expect(page.locator('.mobile-nav-scroll')).toHaveCount(0)
+  const mobileNavigation = page.locator('.site-nav-mobile')
+  await expect(mobileNavigation).toHaveAttribute('data-client-ready', 'true')
+  const trigger = mobileNavigation.getByRole('button', {
+    name: 'Open navigation index',
+  })
+  await expect(trigger).toBeVisible()
+  await expect(trigger.locator('svg.nav-menu-icon')).toBeVisible()
+
+  await trigger.click()
+  await expect(page.locator('#nav-command-panel')).toBeVisible()
+  await expect(
+    page.getByRole('button', { name: 'Close navigation index' }),
+  ).toBeVisible()
+
+  const hasHorizontalOverflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > window.innerWidth,
+  )
+  expect(hasHorizontalOverflow).toBe(false)
+})
+
+test('keeps the compact navigation fixed without scrolling links', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 768, height: 900 })
+  await page.goto('/')
+  await page.waitForTimeout(100)
+
+  const navigation = page.getByRole('navigation', {
+    name: 'Mobile navigation',
+  })
+  const trigger = page.getByRole('button', {
+    name: 'Open navigation index',
+  })
+
+  await expect(navigation).toHaveCSS('position', 'fixed')
+  await expect(navigation).toHaveAttribute('data-client-ready', 'true')
+  await expect(trigger).toBeVisible()
+  await expect(page.locator('.mobile-nav-scroll')).toHaveCount(0)
+
+  await trigger.click()
+  const commandPanel = page.locator('#nav-command-panel')
+  await expect(commandPanel).toBeVisible()
+  await expect(commandPanel.locator('a[href="#projects"]')).toBeVisible()
+
+  await page.keyboard.press('Escape')
+  await expect(commandPanel).toHaveCount(0)
 
   const hasHorizontalOverflow = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth,

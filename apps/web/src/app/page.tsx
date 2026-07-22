@@ -12,6 +12,11 @@ import { SiteNavigation } from './site-navigation'
 
 export const dynamic = 'force-dynamic'
 
+const stitchProjectImages = [
+  '/stitch/neon-toxic/project-alpha.jpg',
+  '/stitch/neon-toxic/project-beta.jpg',
+]
+
 function resolveWebOrigin(): string {
   const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL
 
@@ -44,19 +49,6 @@ function resolveWebOrigin(): string {
 
 const webOrigin = resolveWebOrigin()
 
-function profileInitials(name: string): string {
-  const initials = name
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join('')
-    .toUpperCase()
-
-  return initials || 'MA'
-}
-
 function formatMonth(value: string): string {
   const [year, month] = value.split('-').map(Number)
   return new Intl.DateTimeFormat('en', {
@@ -71,7 +63,7 @@ function formatExperienceDates(
   current: boolean,
 ): string {
   const endLabel = current || !endMonth ? 'Present' : formatMonth(endMonth)
-  return `${formatMonth(startMonth)} to ${endLabel}`
+  return `${formatMonth(startMonth)} — ${endLabel}`
 }
 
 function formatEducationDates(
@@ -79,7 +71,16 @@ function formatEducationDates(
   endYear: number | null,
   current: boolean,
 ): string {
-  return `${startYear} to ${current || !endYear ? 'Present' : endYear}`
+  return `${startYear} — ${current || !endYear ? 'Present' : endYear}`
+}
+
+function skillCode(name: string): string {
+  const words = name.match(/[A-Za-z0-9]+/g) ?? []
+  const code = words
+    .map((word) => word[0])
+    .join('')
+    .slice(0, 3)
+  return code.toUpperCase() || 'SYS'
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -118,17 +119,27 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function SectionHeading({
   title,
-  description,
+  code,
+  index,
   id,
+  query,
 }: {
   title: string
-  description: string
+  code: string
+  index: string
   id: string
+  query?: string
 }) {
   return (
     <header className="section-heading">
-      <h2 id={id}>{title}</h2>
-      <p>{description}</p>
+      <div className="section-signal">
+        <span>{`${code} // ${index}`}</span>
+        <span className="signal-line" aria-hidden="true" />
+      </div>
+      <div className="section-title-row">
+        <h2 id={id}>{title}</h2>
+        {query ? <p>{query}</p> : null}
+      </div>
     </header>
   )
 }
@@ -136,7 +147,8 @@ function SectionHeading({
 function unavailablePage() {
   return (
     <main className="public-page" id="main-content">
-      <section className="page-state" aria-labelledby="error-title">
+      <section className="page-state cyber-frame" aria-labelledby="error-title">
+        <p className="state-code">ERR.CONTENT // 404</p>
         <h1 id="error-title">Content is unavailable</h1>
         <p>The portfolio could not be loaded right now.</p>
         <RetryButton />
@@ -161,7 +173,6 @@ export default async function Home() {
   const { profile, skills, services, experience, education, certifications } =
     portfolio
   const projects = portfolio.projects.slice(0, 5)
-  const initials = profileInitials(profile.name)
   const avatarUrl =
     profile.avatarUrl && isSafeExternalUrl(profile.avatarUrl)
       ? profile.avatarUrl
@@ -178,7 +189,7 @@ export default async function Home() {
   const navigationLinks = [
     { href: '#hero', label: 'Home', mobileLabel: 'Home' },
     ...(projects.length > 0
-      ? [{ href: '#projects', label: 'Projects', mobileLabel: 'Projects' }]
+      ? [{ href: '#projects', label: 'Project', mobileLabel: 'Projects' }]
       : []),
     ...(experience.length > 0
       ? [
@@ -207,7 +218,6 @@ export default async function Home() {
     ...(services.length > 0
       ? [{ href: '#services', label: 'Services', mobileLabel: 'Services' }]
       : []),
-    { href: '#contact', label: 'Connect', mobileLabel: 'Connect' },
   ]
 
   return (
@@ -226,260 +236,343 @@ export default async function Home() {
           id="hero"
           aria-labelledby="hero-title"
         >
+          <aside className="section-rail" aria-hidden="true">
+            SYS.INIT // 01
+          </aside>
           <div className="hero-copy">
-            <p>Full stack developer</p>
-            <h1 id="hero-title">{profile.name}</h1>
-            <p>{profile.biography}</p>
+            <p className="eyebrow">Full stack developer</p>
+            <h1 id="hero-title">
+              {profile.name.split(/\s+/).map((part) => (
+                <span key={part}>{part}</span>
+              ))}
+            </h1>
+            <div
+              className="online-status"
+              aria-label="System version 2.0.4 online"
+            >
+              <span aria-hidden="true" />
+              <strong>v2.0.4 // ONLINE</strong>
+            </div>
+            <p className="hero-biography">{profile.biography}</p>
             <div className="hero-actions">
               {projects.length > 0 ? (
-                <a className="action-link" href="#projects">
-                  View selected work
+                <a className="cyber-button action-link" href="#projects">
+                  <span aria-hidden="true">&gt;_</span> EXEC_PROJECTS
                 </a>
               ) : null}
-              <a className="action-link" href="#contact">
-                Start a conversation
+              <a
+                className="secondary-button action-link"
+                href="#contact"
+                aria-label="Start a conversation"
+              >
+                CONNECT
               </a>
               {profile.resumeUrl && isSafeExternalUrl(profile.resumeUrl) ? (
                 <a
-                  className="action-link"
+                  className="secondary-button action-link"
                   href={profile.resumeUrl}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Download resume
+                  GET_RESUME
                 </a>
               ) : null}
             </div>
           </div>
-
-          <div className="profile-media">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={`${profile.name} portrait`} />
-            ) : (
-              <div
-                className="avatar-fallback"
-                role="img"
-                aria-label={`${profile.name} avatar fallback`}
-              >
-                {initials}
-              </div>
-            )}
+          <div className="profile-media-stack">
+            <span
+              className="media-offset media-offset-violet"
+              aria-hidden="true"
+            />
+            <span
+              className="media-offset media-offset-lime"
+              aria-hidden="true"
+            />
+            <div className="profile-media scanline-image">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={`${profile.name} portrait`} />
+              ) : (
+                <div
+                  className="avatar-fallback"
+                  role="img"
+                  aria-label={`${profile.name} avatar fallback`}
+                >
+                  <img src="/stitch/neon-toxic/portrait.jpg" alt="" />
+                </div>
+              )}
+            </div>
+            <p className="active-stamp">[STATUS: AVAILABLE]</p>
           </div>
         </section>
 
         {projects.length > 0 ? (
           <section
-            className="content-section"
+            className="content-section projects-section"
             id="projects"
             aria-labelledby="projects-title"
           >
             <SectionHeading
               id="projects-title"
-              title="Projects"
-              description="Selected work and the technologies behind it."
+              title="Selected works"
+              code="DATA.PRJ"
+              index="02"
             />
-            <div className="record-list">
-              {projects.map((project) => (
-                <article className="record-card" key={project.slug}>
-                  {project.imageUrl && isSafeExternalUrl(project.imageUrl) ? (
-                    <img
-                      className="project-image"
-                      src={project.imageUrl}
-                      alt={`${project.title} project preview`}
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="media-fallback" aria-hidden="true">
-                      No project image
-                    </div>
-                  )}
-                  <div>
-                    <h3>{project.title}</h3>
-                    <p>{project.description}</p>
-                    {project.skills.length > 0 ? (
-                      <ul
-                        className="tag-list"
-                        aria-label={`${project.title} technologies`}
+            <div className="project-grid">
+              {projects.map((project, projectIndex) => {
+                const projectImage =
+                  project.imageUrl && isSafeExternalUrl(project.imageUrl)
+                    ? project.imageUrl
+                    : stitchProjectImages[
+                        projectIndex % stitchProjectImages.length
+                      ]
+
+                return (
+                  <article
+                    className="project-card cyber-frame"
+                    key={project.slug}
+                  >
+                    <div className="project-card-inner">
+                      <div
+                        className={`project-image project-image-fallback-${projectIndex % stitchProjectImages.length} scanline-image`}
                       >
-                        {project.skills.map((skill) => (
-                          <li key={skill.name}>{skill.name}</li>
-                        ))}
-                      </ul>
-                    ) : null}
-                    <div className="record-links">
-                      {project.projectUrl &&
-                      isSafeExternalUrl(project.projectUrl) ? (
-                        <a
-                          href={project.projectUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          View project
-                        </a>
-                      ) : null}
-                      {project.repositoryUrl &&
-                      isSafeExternalUrl(project.repositoryUrl) ? (
-                        <a
-                          href={project.repositoryUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          View source
-                        </a>
-                      ) : null}
+                        <img
+                          src={projectImage}
+                          alt={`${project.title} project preview`}
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="record-title-row">
+                        <h3>{project.title}</h3>
+                      </div>
+                      <p>{project.description}</p>
+                      <div className="project-card-footer">
+                        {project.skills.length > 0 ? (
+                          <ul
+                            className="tag-list"
+                            aria-label={`${project.title} technologies`}
+                          >
+                            {project.skills.map((skill) => (
+                              <li key={skill.name}>{skill.name}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <span />
+                        )}
+                        <div className="record-links">
+                          {project.projectUrl &&
+                          isSafeExternalUrl(project.projectUrl) ? (
+                            <a
+                              href={project.projectUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              LIVE_LINK →
+                            </a>
+                          ) : null}
+                          {project.repositoryUrl &&
+                          isSafeExternalUrl(project.repositoryUrl) ? (
+                            <a
+                              href={project.repositoryUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              SOURCE_CODE →
+                            </a>
+                          ) : null}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                )
+              })}
             </div>
           </section>
         ) : null}
 
-        {experience.length > 0 ? (
-          <section
-            className="content-section"
-            id="experience"
-            aria-labelledby="experience-title"
-          >
-            <SectionHeading
-              id="experience-title"
-              title="Experience"
-              description="A practical timeline of recent work."
-            />
-            <div className="record-list">
-              {experience.map((item) => (
-                <article
-                  className="record-card"
-                  key={`${item.company}-${item.role}-${item.startMonth}`}
-                >
-                  <p className="record-meta">
-                    {formatExperienceDates(
-                      item.startMonth,
-                      item.endMonth,
-                      item.current,
-                    )}
-                  </p>
-                  <h3>{item.role}</h3>
-                  <p>
-                    {item.company}
-                    {item.location ? `, ${item.location}` : ''}
-                  </p>
-                  <p>{item.description}</p>
-                </article>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {skills.length > 0 ? (
-          <section
-            className="content-section"
-            id="skills"
-            aria-labelledby="skills-title"
-          >
-            <SectionHeading
-              id="skills-title"
-              title="Skills"
-              description="Technologies I use to make ideas real."
-            />
-            <ul className="skill-list">
-              {skills.map((skill) => (
-                <li key={skill.name}>
-                  {skill.iconUrl && isSafeExternalUrl(skill.iconUrl) ? (
-                    <img src={skill.iconUrl} alt="" loading="lazy" />
-                  ) : null}
-                  <span>{skill.name}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
-        {education.length > 0 ? (
-          <section
-            className="content-section"
-            id="education"
-            aria-labelledby="education-title"
-          >
-            <SectionHeading
-              id="education-title"
-              title="Education"
-              description="The ideas and disciplines behind the work."
-            />
-            <div className="record-list">
-              {education.map((item) => (
-                <article
-                  className="record-card"
-                  key={`${item.institution}-${item.degree}`}
-                >
-                  <p className="record-meta">
-                    {formatEducationDates(
-                      item.startYear,
-                      item.endYear,
-                      item.current,
-                    )}
-                  </p>
-                  <h3>{item.degree}</h3>
-                  <p>
-                    {item.institution}
-                    {item.location ? `, ${item.location}` : ''}
-                  </p>
-                </article>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {certifications.length > 0 ? (
-          <section
-            className="content-section"
-            id="certifications"
-            aria-labelledby="certifications-title"
-          >
-            <SectionHeading
-              id="certifications-title"
-              title="Certifications"
-              description="Selected credentials and continuing practice."
-            />
-            <div className="record-list">
-              {certifications.map((item) => (
-                <article
-                  className="record-card"
-                  key={`${item.name}-${item.issuingOrganization}`}
-                >
-                  <p className="record-meta">{item.issueYear}</p>
-                  <h3>{item.name}</h3>
-                  <p>{item.issuingOrganization}</p>
-                  {item.credentialUrl &&
-                  isSafeExternalUrl(item.credentialUrl) ? (
-                    <a
-                      href={item.credentialUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+        {experience.length > 0 || skills.length > 0 ? (
+          <div className="split-grid">
+            {experience.length > 0 ? (
+              <section
+                className="content-section"
+                id="experience"
+                aria-labelledby="experience-title"
+              >
+                <SectionHeading
+                  id="experience-title"
+                  title="Career timeline"
+                  code="LOG.EXP"
+                  index="03"
+                />
+                <div className="timeline-list">
+                  {experience.map((item) => (
+                    <article
+                      className="timeline-item"
+                      key={`${item.company}-${item.role}-${item.startMonth}`}
                     >
-                      View credential
-                    </a>
-                  ) : null}
-                </article>
-              ))}
-            </div>
-          </section>
+                      <div className="timeline-meta">
+                        <time dateTime={item.startMonth}>
+                          {formatExperienceDates(
+                            item.startMonth,
+                            item.endMonth,
+                            item.current,
+                          )}
+                        </time>
+                      </div>
+                      <h3>{item.role}</h3>
+                      <p className="record-accent">
+                        @ {item.company}
+                        {item.location ? ` | ${item.location}` : ''}
+                      </p>
+                      <p className="timeline-description">{item.description}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {skills.length > 0 ? (
+              <section
+                className="content-section"
+                id="skills"
+                aria-labelledby="skills-title"
+              >
+                <SectionHeading
+                  id="skills-title"
+                  title="Technical arsenal"
+                  code="DB.SKILLS"
+                  index="04"
+                />
+                <div className="skills-panel cyber-frame">
+                  <header className="panel-status">
+                    <span>SKILLS | TOOLS: {skills.length}</span>
+                    <span className="status-pulse" aria-hidden="true" />
+                  </header>
+                  <ul className="skill-list">
+                    {skills.map((skill) => (
+                      <li key={skill.name}>
+                        <strong aria-hidden="true">
+                          {skillCode(skill.name)}
+                        </strong>
+                        <span>{skill.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
+            ) : null}
+          </div>
+        ) : null}
+
+        {education.length > 0 || certifications.length > 0 ? (
+          <div className="split-grid">
+            {education.length > 0 ? (
+              <section
+                className="content-section"
+                id="education"
+                aria-labelledby="education-title"
+              >
+                <SectionHeading
+                  id="education-title"
+                  title="Academic bg"
+                  code="REC.EDU"
+                  index="05"
+                />
+                <div className="record-list">
+                  {education.map((item) => (
+                    <article
+                      className="education-card cyber-frame"
+                      key={`${item.institution}-${item.degree}`}
+                    >
+                      <div>
+                        <h3>{item.degree}</h3>
+                        <p>
+                          {item.institution}
+                          {item.location ? ` | ${item.location}` : ''}
+                        </p>
+                      </div>
+                      <time dateTime={String(item.startYear)}>
+                        {formatEducationDates(
+                          item.startYear,
+                          item.endYear,
+                          item.current,
+                        )}
+                      </time>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {certifications.length > 0 ? (
+              <section
+                className="content-section"
+                id="certifications"
+                aria-labelledby="certifications-title"
+              >
+                <SectionHeading
+                  id="certifications-title"
+                  title="Credentials"
+                  code="AUTH.CRT"
+                  index="06"
+                />
+                <div className="certification-grid">
+                  {certifications.map((item) => (
+                    <article
+                      className="certification-card"
+                      key={`${item.name}-${item.issuingOrganization}`}
+                    >
+                      <span className="verified-mark" aria-hidden="true">
+                        ✓
+                      </span>
+                      <h3>{item.name}</h3>
+                      <div className="certification-meta">
+                        <span>{item.issuingOrganization}</span>
+                        <time dateTime={String(item.issueYear)}>
+                          {item.issueYear}
+                        </time>
+                      </div>
+                      {item.credentialUrl &&
+                      isSafeExternalUrl(item.credentialUrl) ? (
+                        <a
+                          className="card-cover-link"
+                          href={item.credentialUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <span className="sr-only">
+                            View {item.name} credential
+                          </span>
+                        </a>
+                      ) : null}
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </div>
         ) : null}
 
         {services.length > 0 ? (
           <section
-            className="content-section"
+            className="content-section services-section"
             id="services"
             aria-labelledby="services-title"
           >
             <SectionHeading
               id="services-title"
-              title="Services"
-              description="Ways I can help with thoughtful digital products."
+              title="System capabilities"
+              code="FUNC.SVC"
+              index="07"
             />
-            <div className="record-list">
-              {services.map((service) => (
-                <article className="record-card" key={service.name}>
+            <div className="service-grid">
+              {services.map((service, index) => (
+                <article
+                  className="service-card cyber-frame"
+                  key={service.name}
+                >
+                  <span className="service-index" aria-hidden="true">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
                   <h3>{service.name}</h3>
                   <p>{service.description}</p>
                 </article>
@@ -493,25 +586,70 @@ export default async function Home() {
           id="contact"
           aria-labelledby="contact-title"
         >
-          <SectionHeading
-            id="contact-title"
-            title="Connect"
-            description="Have a project in mind or want to start a conversation?"
-          />
-          <p>
-            <a href={`mailto:${profile.contactEmail}`}>
+          <div className="contact-copy">
+            <SectionHeading
+              id="contact-title"
+              title="Establish uplink"
+              code="IO.COMM"
+              index="08"
+            />
+            <p>
+              Available for product work, technical collaboration, and focused
+              structural builds.
+            </p>
+            <a
+              className="contact-email"
+              href={`mailto:${profile.contactEmail}`}
+            >
               {profile.contactEmail}
             </a>
-          </p>
+            <div className="connection-panel">
+              <p>
+                <span className="status-pulse" aria-hidden="true" /> CONNECTION
+                SECURE
+              </p>
+              <p>
+                Transport: TLS 1.3
+                <br />
+                Route: DIRECT_EMAIL
+              </p>
+            </div>
+          </div>
           <ContactForm />
         </section>
-
-        <footer className="site-footer">
-          <p>
-            © {new Date().getFullYear()} {profile.name}
-          </p>
-        </footer>
       </div>
+
+      <footer className="site-footer">
+        <div>
+          <a className="site-wordmark" href="#hero">
+            MC.ANGHEL
+          </a>
+          <p>
+            {`© ${new Date().getFullYear()} ${profile.name.toUpperCase()} // DESIGNED FOR TECHNICAL INTENTIONALITY`}
+          </p>
+          <p className="footer-status">
+            <span className="status-pulse" aria-hidden="true" /> SYSTEM ONLINE
+          </p>
+        </div>
+        <div className="footer-links">
+          <a href={`mailto:${profile.contactEmail}`}>[EMAIL]</a>
+          {projects.find((project) => project.repositoryUrl)?.repositoryUrl ? (
+            <a
+              href={
+                projects.find((project) => project.repositoryUrl)
+                  ?.repositoryUrl ?? '#'
+              }
+              target="_blank"
+              rel="noreferrer"
+            >
+              [GITHUB]
+            </a>
+          ) : null}
+          <a className="back-to-top" href="#hero" aria-label="Back to top">
+            ↑
+          </a>
+        </div>
+      </footer>
 
       <script
         type="application/ld+json"
