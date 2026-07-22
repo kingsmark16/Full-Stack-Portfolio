@@ -109,43 +109,37 @@ describe('PortfolioService', () => {
     expect(skillFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { published: true },
-        orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
-        take: 100,
+        orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
       }),
     )
     expect(experienceFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { published: true },
-        orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
-        take: 100,
+        orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
       }),
     )
     expect(educationFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { published: true },
-        orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
-        take: 100,
+        orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
       }),
     )
     expect(certificationFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { published: true },
-        orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
-        take: 100,
+        orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
       }),
     )
     expect(serviceFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { published: true },
-        orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
-        take: 100,
+        orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
       }),
     )
     expect(projectFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { published: true },
-        orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
-        take: 100,
+        orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
         select: {
           title: true,
           slug: true,
@@ -164,8 +158,8 @@ describe('PortfolioService', () => {
             orderBy: [
               { skill: { displayOrder: 'asc' } },
               { skill: { createdAt: 'asc' } },
+              { skill: { id: 'asc' } },
             ],
-            take: 100,
             select: {
               skill: {
                 select: {
@@ -173,6 +167,7 @@ describe('PortfolioService', () => {
                   iconUrl: true,
                   displayOrder: true,
                   createdAt: true,
+                  id: true,
                 },
               },
             },

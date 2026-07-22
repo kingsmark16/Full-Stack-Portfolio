@@ -17,12 +17,33 @@ Give visitors a fast, credible introduction and clear routes to projects, servic
 - [x] Test it: `/test home page`
       [Spec 0001](../specs/web/0001-home-page/index.md) · code in `apps/web/`
 
-### 7. About and resume page · needs a decision
+### 7. About and resume sections · in-progress
 
-Tell the professional story through experience, education, certifications, and skills, then offer the current resume as a download.
+Tell the professional story on the home page through projects, experience, education, certifications, skills, and services, then offer the current resume as a download.
 **Done when:** visitors can understand the career timeline, scan grouped skills and credentials, and download the current resume; missing optional content does not leave broken sections.
 
-- [ ] Design it (spec): `/architect about and resume page`
+- [x] Design it (spec): `/architect about and resume sections`
+      [Spec 0002](../specs/web/0002-about-resume-page/index.md) · code in `apps/web/`
+- [x] Build it: `/develop about and resume sections`
+  - [x] Update the public boundary for complete ordered records, safe URLs, and date validation, **AC-3**, **AC-6**, **AC-7**, **AC-12**
+  - [x] Build the server rendered home sections, shared scroll aware navigation, metadata, sitemap, and existing failure states, **AC-8**, **AC-9**, **AC-11**, **AC-13**
+  - [x] Build Cyber Noir timeline sections, resume action, responsive layout, and accessibility behavior, **AC-1**, **AC-2**, **AC-4**, **AC-5**, **AC-10**
+- [ ] Verify it: `/check verify about and resume page`
+- [ ] Test it: `/test about and resume page`
+
+### 7a. Public UI reset · in-progress
+
+Remove the current public visual system while keeping the portfolio readable, functional, and ready for a new approved design.
+**Done when:** `/` uses a plain semantic baseline, preserves public content and contact behavior, contains no previous theme effects or copy, and passes the public quality checks.
+
+- [x] Design it (spec): `/architect reset public UI`
+      [Spec 0003](../specs/web/0003-reset-public-ui.md) · code in `apps/web/`
+- [x] Build it: `/develop reset public UI`
+  - [x] Remove visual theme components and presentation rules, **AC-1**, **AC-2**
+  - [x] Preserve public data, contact, navigation, and accessibility behavior, **AC-3**, **AC-4**, **AC-5**
+  - [x] Replace theme tests with neutral baseline checks, **AC-6**
+- [ ] Verify it: `/check verify reset public UI`
+- [ ] Test it: `/test reset public UI`
 
 ### 8. Services page · needs a decision
 

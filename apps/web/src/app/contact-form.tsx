@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 
 type SubmissionState = 'idle' | 'submitting' | 'success' | 'error'
@@ -18,6 +18,11 @@ export function ContactForm() {
   const [state, setState] = useState<SubmissionState>('idle')
   const [error, setError] = useState('')
   const idempotencyKeyRef = useRef<string | null>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+
+  useEffect(() => {
+    formRef.current?.setAttribute('data-client-ready', 'true')
+  }, [])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -75,40 +80,57 @@ export function ContactForm() {
 
   return (
     <form
-      className="contact-form"
+      className={`contact-form contact-form-${state}`}
       onSubmit={handleSubmit}
       aria-describedby="contact-status"
+      data-client-ready="false"
+      ref={formRef}
     >
-      <div className="form-field">
-        <label htmlFor="contact-name">Name</label>
-        <input
-          id="contact-name"
-          name="name"
-          type="text"
-          placeholder="Your name"
-          required
-          maxLength={120}
-          autoComplete="name"
-        />
+      <span className="frame-corner frame-corner-nw" aria-hidden="true" />
+      <span className="frame-corner frame-corner-ne" aria-hidden="true" />
+      <span className="frame-corner frame-corner-sw" aria-hidden="true" />
+      <span className="frame-corner frame-corner-se" aria-hidden="true" />
+      <div className="form-row">
+        <div className="form-field">
+          <label htmlFor="contact-name">
+            <span aria-hidden="true">NAME</span>
+            <span className="sr-only">Name</span>
+          </label>
+          <input
+            id="contact-name"
+            name="name"
+            type="text"
+            placeholder="Enter your name"
+            required
+            maxLength={120}
+            autoComplete="name"
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="contact-email">
+            <span aria-hidden="true">EMAIL_ADDRESS</span>
+            <span className="sr-only">Email</span>
+          </label>
+          <input
+            id="contact-email"
+            name="email"
+            type="email"
+            placeholder="Enter your email"
+            required
+            maxLength={320}
+            autoComplete="email"
+          />
+        </div>
       </div>
       <div className="form-field">
-        <label htmlFor="contact-email">Email</label>
-        <input
-          id="contact-email"
-          name="email"
-          type="email"
-          placeholder="you@example.com"
-          required
-          maxLength={320}
-          autoComplete="email"
-        />
-      </div>
-      <div className="form-field">
-        <label htmlFor="contact-message">Message</label>
+        <label htmlFor="contact-message">
+          <span aria-hidden="true">MESSAGE</span>
+          <span className="sr-only">Message</span>
+        </label>
         <textarea
           id="contact-message"
           name="message"
-          placeholder="Tell me about your project or opportunity."
+          placeholder="Your message"
           required
           maxLength={5000}
           rows={4}
@@ -125,11 +147,13 @@ export function ContactForm() {
         />
       </div>
       <button
-        className="contact-submit"
+        className="contact-submit cyber-button"
         type="submit"
         disabled={state === 'submitting'}
       >
-        {state === 'submitting' ? 'Sending…' : 'Send message'}
+        <span className="visually-hidden">
+          {state === 'submitting' ? 'Sending message' : 'Send message'}
+        </span>
       </button>
       <p
         id="contact-status"

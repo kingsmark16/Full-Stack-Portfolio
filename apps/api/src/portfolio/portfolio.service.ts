@@ -37,8 +37,11 @@ export class PortfolioService {
       await Promise.all([
         this.prisma.skill.findMany({
           where: { published: true },
-          orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
-          take: 100,
+          orderBy: [
+            { displayOrder: 'asc' },
+            { createdAt: 'asc' },
+            { id: 'asc' },
+          ],
           select: {
             name: true,
             iconUrl: true,
@@ -46,8 +49,11 @@ export class PortfolioService {
         }),
         this.prisma.experience.findMany({
           where: { published: true },
-          orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
-          take: 100,
+          orderBy: [
+            { displayOrder: 'asc' },
+            { createdAt: 'asc' },
+            { id: 'asc' },
+          ],
           select: {
             company: true,
             role: true,
@@ -60,8 +66,11 @@ export class PortfolioService {
         }),
         this.prisma.education.findMany({
           where: { published: true },
-          orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
-          take: 100,
+          orderBy: [
+            { displayOrder: 'asc' },
+            { createdAt: 'asc' },
+            { id: 'asc' },
+          ],
           select: {
             institution: true,
             degree: true,
@@ -73,8 +82,11 @@ export class PortfolioService {
         }),
         this.prisma.certification.findMany({
           where: { published: true },
-          orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
-          take: 100,
+          orderBy: [
+            { displayOrder: 'asc' },
+            { createdAt: 'asc' },
+            { id: 'asc' },
+          ],
           select: {
             name: true,
             issuingOrganization: true,
@@ -84,8 +96,11 @@ export class PortfolioService {
         }),
         this.prisma.service.findMany({
           where: { published: true },
-          orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
-          take: 100,
+          orderBy: [
+            { displayOrder: 'asc' },
+            { createdAt: 'asc' },
+            { id: 'asc' },
+          ],
           select: {
             name: true,
             description: true,
@@ -94,8 +109,11 @@ export class PortfolioService {
         }),
         this.prisma.project.findMany({
           where: { published: true },
-          orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
-          take: 100,
+          orderBy: [
+            { displayOrder: 'asc' },
+            { createdAt: 'asc' },
+            { id: 'asc' },
+          ],
           select: {
             title: true,
             slug: true,
@@ -114,8 +132,8 @@ export class PortfolioService {
               orderBy: [
                 { skill: { displayOrder: 'asc' } },
                 { skill: { createdAt: 'asc' } },
+                { skill: { id: 'asc' } },
               ],
-              take: 100,
               select: {
                 skill: {
                   select: {
@@ -123,6 +141,7 @@ export class PortfolioService {
                     iconUrl: true,
                     displayOrder: true,
                     createdAt: true,
+                    id: true,
                   },
                 },
               },
@@ -147,7 +166,9 @@ export class PortfolioService {
 
             return (
               displayOrderDifference ||
-              first.skill.createdAt.getTime() - second.skill.createdAt.getTime()
+              first.skill.createdAt.getTime() -
+                second.skill.createdAt.getTime() ||
+              first.skill.id.localeCompare(second.skill.id)
             )
           })
           .map(({ skill }) => ({

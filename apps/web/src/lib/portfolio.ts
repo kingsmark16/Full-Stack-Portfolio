@@ -106,7 +106,15 @@ function isNullableString(value: unknown): value is string | null {
 }
 
 function isNullableSafeExternalUrl(value: unknown): value is string | null {
-  return value === null || (isString(value) && isSafeExternalUrl(value))
+  return value === null || isString(value)
+}
+
+function normalizeSafeExternalUrl(value: string | null): string | null {
+  return value && isSafeExternalUrl(value) ? value : null
+}
+
+function isValidMonth(value: string): boolean {
+  return /^\d{4}-(0[1-9]|1[0-2])$/.test(value)
 }
 
 function isPortfolioSkill(value: unknown): value is PortfolioSkill {
@@ -136,7 +144,9 @@ function isPortfolioExperience(value: unknown): value is PortfolioExperience {
     isString(value.role) &&
     isNullableString(value.location) &&
     isString(value.startMonth) &&
+    isValidMonth(value.startMonth) &&
     isNullableString(value.endMonth) &&
+    (value.endMonth === null || isValidMonth(value.endMonth)) &&
     isBoolean(value.current) &&
     isString(value.description)
   )
@@ -149,7 +159,9 @@ function isPortfolioEducation(value: unknown): value is PortfolioEducation {
     isString(value.degree) &&
     isNullableString(value.location) &&
     isNumber(value.startYear) &&
+    Number.isInteger(value.startYear) &&
     isNullableNumber(value.endYear) &&
+    (value.endYear === null || Number.isInteger(value.endYear)) &&
     isBoolean(value.current)
   )
 }
@@ -162,6 +174,7 @@ function isPortfolioCertification(
     isString(value.name) &&
     isString(value.issuingOrganization) &&
     isNumber(value.issueYear) &&
+    Number.isInteger(value.issueYear) &&
     isNullableSafeExternalUrl(value.credentialUrl)
   )
 }
@@ -214,6 +227,41 @@ function isPortfolioPayload(value: unknown): value is PortfolioPayload {
   )
 }
 
+function normalizePortfolioPayload(
+  payload: PortfolioPayload,
+): PortfolioPayload {
+  return {
+    ...payload,
+    profile: {
+      ...payload.profile,
+      avatarUrl: normalizeSafeExternalUrl(payload.profile.avatarUrl),
+      resumeUrl: normalizeSafeExternalUrl(payload.profile.resumeUrl),
+    },
+    skills: payload.skills.map((skill) => ({
+      ...skill,
+      iconUrl: normalizeSafeExternalUrl(skill.iconUrl),
+    })),
+    certifications: payload.certifications.map((certification) => ({
+      ...certification,
+      credentialUrl: normalizeSafeExternalUrl(certification.credentialUrl),
+    })),
+    services: payload.services.map((service) => ({
+      ...service,
+      iconUrl: normalizeSafeExternalUrl(service.iconUrl),
+    })),
+    projects: payload.projects.map((project) => ({
+      ...project,
+      imageUrl: normalizeSafeExternalUrl(project.imageUrl),
+      projectUrl: normalizeSafeExternalUrl(project.projectUrl),
+      repositoryUrl: normalizeSafeExternalUrl(project.repositoryUrl),
+      skills: project.skills.map((skill) => ({
+        ...skill,
+        iconUrl: normalizeSafeExternalUrl(skill.iconUrl),
+      })),
+    })),
+  }
+}
+
 const apiInternalUrl = (
   process.env.API_INTERNAL_URL ?? 'http://localhost:3001'
 ).replace(/\/$/, '')
@@ -238,7 +286,9 @@ export async function getPortfolio(): Promise<PortfolioPayload | null> {
 
     const payload: unknown = await response.json()
 
-    return isPortfolioPayload(payload) ? payload : null
+    return isPortfolioPayload(payload)
+      ? normalizePortfolioPayload(payload)
+      : null
   } catch (error) {
     if (error instanceof PortfolioNotFoundError) {
       throw error

@@ -21,7 +21,13 @@ async function main(): Promise<void> {
   if (existingProfile) {
     await prisma.profile.update({
       where: { id: existingProfile.id },
-      data: { published: true },
+      data: {
+        name: 'Mark Angel',
+        biography: 'Full stack developer building useful web experiences.',
+        contactEmail: 'owner@gmail.com',
+        phoneNumber: '09694451271',
+        published: true,
+      },
     })
   } else {
     await prisma.profile.create({
