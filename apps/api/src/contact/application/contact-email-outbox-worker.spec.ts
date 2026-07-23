@@ -2,6 +2,10 @@ import { EmailDeliveryError } from './ports/email-gateway'
 import { FakeEmailGateway } from './testing/fake-email-gateway'
 import { ContactEmailOutboxWorker } from './contact-email-outbox-worker'
 import {
+  type ContactEmailDeliveryFailure,
+  type ContactEmailDeliveryLogger,
+} from './ports/contact-email-delivery-logger'
+import {
   type ClaimedContactEmailOutbox,
   type ClaimNextContactEmailOutboxInput,
   type ContactEmailOutboxRepository,
@@ -47,10 +51,19 @@ class FakeContactEmailOutboxRepository implements ContactEmailOutboxRepository {
   }
 }
 
+class FakeContactEmailDeliveryLogger implements ContactEmailDeliveryLogger {
+  readonly failures: ContactEmailDeliveryFailure[] = []
+
+  finalFailure(failure: ContactEmailDeliveryFailure): void {
+    this.failures.push(failure)
+  }
+}
+
 describe('ContactEmailOutboxWorker', () => {
   it('sends a claimed event and records delivery', async () => {
     const now = new Date('2026-07-23T02:00:00.000Z')
     const emailGateway = new FakeEmailGateway()
+    const logger = new FakeContactEmailDeliveryLogger()
     const repository = new FakeContactEmailOutboxRepository({
       id: 'outbox-001',
       deduplicationKey: 'contact:submission-001',
@@ -67,6 +80,7 @@ describe('ContactEmailOutboxWorker', () => {
     const worker = new ContactEmailOutboxWorker({
       repository,
       emailGateway,
+      logger,
       from: 'Portfolio <portfolio@example.com>',
       to: 'owner@example.com',
       now: () => now,
@@ -95,6 +109,7 @@ describe('ContactEmailOutboxWorker', () => {
   it('requeues a retryable delivery failure with the first delay', async () => {
     const now = new Date('2026-07-23T02:00:00.000Z')
     const emailGateway = new FakeEmailGateway()
+    const logger = new FakeContactEmailDeliveryLogger()
     emailGateway.failure = new EmailDeliveryError(true, 'Request timed out')
 
     const repository = new FakeContactEmailOutboxRepository({
@@ -113,6 +128,7 @@ describe('ContactEmailOutboxWorker', () => {
     const worker = new ContactEmailOutboxWorker({
       repository,
       emailGateway,
+      logger,
       from: 'Portfolio <portfolio@example.com>',
       to: 'owner@example.com',
       now: () => now,
@@ -135,6 +151,7 @@ describe('ContactEmailOutboxWorker', () => {
   it('marks the fifth retryable failure as final', async () => {
     const now = new Date('2026-07-23T02:00:00.000Z')
     const emailGateway = new FakeEmailGateway()
+    const logger = new FakeContactEmailDeliveryLogger()
     emailGateway.failure = new EmailDeliveryError(
       true,
       'Email provider is unavailable',
@@ -156,6 +173,7 @@ describe('ContactEmailOutboxWorker', () => {
     const worker = new ContactEmailOutboxWorker({
       repository,
       emailGateway,
+      logger,
       from: 'Portfolio <portfolio@example.com>',
       to: 'owner@example.com',
       now: () => now,
@@ -172,6 +190,13 @@ describe('ContactEmailOutboxWorker', () => {
         leaseToken: 'lease-003',
         failedAt: now,
         lastError: 'Email provider is unavailable',
+      },
+    ])
+    expect(logger.failures).toEqual([
+      {
+        outboxId: 'outbox-003',
+        category: 'unknown',
+        statusCode: null,
       },
     ])
   })

@@ -13,6 +13,8 @@ export class EmailDeliveryError extends Error {
   constructor(
     public readonly retryable: boolean,
     public readonly summary: string,
+    public readonly category = 'unknown',
+    public readonly statusCode: number | null = null,
   ) {
     super(summary)
     this.name = 'EmailDeliveryError'

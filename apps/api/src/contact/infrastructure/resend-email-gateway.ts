@@ -9,6 +9,7 @@ import { CONTACT_EMAIL_SEND_TIMEOUT_MS } from '../domain/contact-email-delivery-
 
 type ProviderError = Readonly<{
   statusCode?: unknown
+  name?: unknown
 }>
 
 function providerStatusCode(error: unknown): number | null {
@@ -20,30 +21,65 @@ function providerStatusCode(error: unknown): number | null {
   return typeof statusCode === 'number' ? statusCode : null
 }
 
+function providerCategory(error: unknown): string {
+  if (typeof error !== 'object' || error === null || !('name' in error)) {
+    return 'unknown'
+  }
+
+  const { name } = error as ProviderError
+
+  if (typeof name !== 'string' || name.length === 0) {
+    return 'unknown'
+  }
+
+  return name.replace(/[^a-z0-9_-]/gi, '_').slice(0, 80)
+}
+
 function deliveryError(error: unknown): EmailDeliveryError {
   const statusCode = providerStatusCode(error)
+  const category = providerCategory(error)
 
   const retryable =
-    statusCode === null || statusCode === 429 || statusCode >= 500
+    category === 'concurrent_idempotent_requests' ||
+    statusCode === null ||
+    statusCode === 429 ||
+    statusCode >= 500
 
   const summary =
     statusCode === null
-      ? 'Email provider request failed'
-      : `Email provider request failed with status ${statusCode}`
+      ? `Email provider request failed (${category})`
+      : `Email provider request failed with status ${statusCode} (${category})`
 
-  return new EmailDeliveryError(retryable, summary)
+  return new EmailDeliveryError(retryable, summary, category, statusCode)
 }
 
-function withTimeout<T>(operation: Promise<T>): Promise<T> {
+type ResendSendOptions = NonNullable<
+  Parameters<Resend['emails']['send']>[1]
+> & {
+  signal: AbortSignal
+}
+
+function withTimeout<T>(
+  operation: (signal: AbortSignal) => Promise<T>,
+  timeoutMilliseconds: number,
+): Promise<T> {
+  const controller = new AbortController()
   let timeoutId: ReturnType<typeof setTimeout> | undefined
 
-  const timeout = new Promise<never>((_, reject) => {
+  const timeout = new Promise<T>((_, reject) => {
     timeoutId = setTimeout(() => {
-      reject(new EmailDeliveryError(true, 'Email provider request timed out'))
-    }, CONTACT_EMAIL_SEND_TIMEOUT_MS)
+      controller.abort()
+      reject(
+        new EmailDeliveryError(
+          true,
+          'Email provider request timed out',
+          'timeout',
+        ),
+      )
+    }, timeoutMilliseconds)
   })
 
-  return Promise.race([operation, timeout]).finally(() => {
+  return Promise.race([operation(controller.signal), timeout]).finally(() => {
     if (timeoutId) {
       clearTimeout(timeoutId)
     }
@@ -53,26 +89,34 @@ function withTimeout<T>(operation: Promise<T>): Promise<T> {
 @Injectable()
 export class ResendEmailGateway implements EmailGateway {
   private readonly resend: Resend
+  private readonly timeoutMilliseconds: number
 
-  constructor(apiKey: string) {
+  constructor(
+    apiKey: string,
+    timeoutMilliseconds = CONTACT_EMAIL_SEND_TIMEOUT_MS,
+  ) {
     this.resend = new Resend(apiKey)
+    this.timeoutMilliseconds = timeoutMilliseconds
   }
 
   async send(email: OutboundEmail): Promise<void> {
     try {
       const { error } = await withTimeout(
-        this.resend.emails.send(
-          {
-            from: email.from,
-            to: email.to,
-            replyTo: email.replyTo,
-            subject: email.subject,
-            text: email.text,
-          },
-          {
-            idempotencyKey: email.idempotencyKey,
-          },
-        ),
+        (signal) =>
+          this.resend.emails.send(
+            {
+              from: email.from,
+              to: email.to,
+              replyTo: email.replyTo,
+              subject: email.subject,
+              text: email.text,
+            },
+            {
+              idempotencyKey: email.idempotencyKey,
+              signal,
+            } as ResendSendOptions,
+          ),
+        this.timeoutMilliseconds,
       )
 
       if (error) {
