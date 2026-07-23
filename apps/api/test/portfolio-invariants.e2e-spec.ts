@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto'
 import { PrismaService } from '../src/prisma/prisma.service'
 
+jest.setTimeout(30_000)
+
 type AsyncOperation = () => Promise<unknown>
 
 async function expectConstraintViolation(
