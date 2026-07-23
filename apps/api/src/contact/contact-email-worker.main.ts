@@ -19,6 +19,15 @@ async function bootstrap(): Promise<void> {
     ContactEmailWorkerModule,
   )
   const worker = application.get(ContactEmailOutboxWorker)
+  if (process.argv.includes('--once')) {
+    try {
+      await worker.processAvailable()
+    } finally {
+      await application.close()
+    }
+
+    return
+  }
 
   let stopping = false
   let activePoll: Promise<void> | null = null
