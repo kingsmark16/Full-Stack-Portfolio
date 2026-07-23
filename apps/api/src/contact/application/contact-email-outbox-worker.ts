@@ -4,6 +4,7 @@ import {
   retryDelayForAttempt,
 } from '../domain/contact-email-delivery-policy'
 import { buildContactNotificationEmail } from './contact-notification-email'
+import { type ContactEmailDeliveryLogger } from './ports/contact-email-delivery-logger'
 import {
   type ClaimedContactEmailOutbox,
   type ContactEmailOutboxRepository,
@@ -13,6 +14,7 @@ import { EmailDeliveryError, type EmailGateway } from './ports/email-gateway'
 export type ContactEmailOutboxWorkerDependencies = Readonly<{
   repository: ContactEmailOutboxRepository
   emailGateway: EmailGateway
+  logger: ContactEmailDeliveryLogger
   from: string
   to: string
   now: () => Date
@@ -33,6 +35,23 @@ function errorSummary(error: unknown): string {
 
 function isRetryable(error: unknown): boolean {
   return !(error instanceof EmailDeliveryError) || error.retryable
+}
+
+function failureDetails(error: unknown): Readonly<{
+  category: string
+  statusCode: number | null
+}> {
+  if (error instanceof EmailDeliveryError) {
+    return {
+      category: error.category,
+      statusCode: error.statusCode,
+    }
+  }
+
+  return {
+    category: 'unexpected',
+    statusCode: null,
+  }
 }
 
 export class ContactEmailOutboxWorker {
@@ -102,12 +121,19 @@ export class ContactEmailOutboxWorker {
         return
       }
 
-      await this.dependencies.repository.markFailed({
+      const markedFailed = await this.dependencies.repository.markFailed({
         id: outbox.id,
         leaseToken: outbox.leaseToken,
         failedAt: this.dependencies.now(),
         lastError: errorSummary(error),
       })
+
+      if (markedFailed) {
+        this.dependencies.logger.finalFailure({
+          outboxId: outbox.id,
+          ...failureDetails(error),
+        })
+      }
     }
   }
 }

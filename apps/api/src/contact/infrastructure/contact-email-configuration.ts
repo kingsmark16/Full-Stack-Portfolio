@@ -31,3 +31,18 @@ export function loadContactEmailConfiguration(
     to: requiredEnvironmentValue(environment, 'CONTACT_RECIPIENT_EMAIL'),
   }
 }
+
+export function loadContactEmailWorkerConfiguration(
+  environment: NodeJS.ProcessEnv,
+): ContactEmailConfiguration {
+  if (environment.NODE_ENV === 'production') {
+    return loadContactEmailConfiguration(environment)
+  }
+
+  return {
+    apiKey: 'development-only',
+    from:
+      environment.EMAIL_FROM?.trim() || 'Portfolio <development@example.test>',
+    to: environment.CONTACT_RECIPIENT_EMAIL?.trim() || 'owner@example.test',
+  }
+}
