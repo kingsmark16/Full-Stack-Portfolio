@@ -17,19 +17,10 @@ Give visitors a fast, credible introduction and clear routes to projects, servic
 - [x] Test it: `/test home page`
       [Spec 0001](../specs/web/0001-home-page/index.md) · code in `apps/web/`
 
-### 7. About and resume sections · in-progress
+### 7. About and resume sections · existing
 
 Tell the professional story on the home page through projects, experience, education, certifications, skills, and services, then offer the current resume as a download.
-**Done when:** visitors can understand the career timeline, scan grouped skills and credentials, and download the current resume; missing optional content does not leave broken sections.
-
-- [x] Design it (spec): `/architect about and resume sections`
-      [Spec 0002](../specs/web/0002-about-resume-page/index.md) · code in `apps/web/`
-- [x] Build it: `/develop about and resume sections`
-  - [x] Update the public boundary for complete ordered records, safe URLs, and date validation, **AC-3**, **AC-6**, **AC-7**, **AC-12**
-  - [x] Build the server rendered home sections, shared scroll aware navigation, metadata, sitemap, and existing failure states, **AC-8**, **AC-9**, **AC-11**, **AC-13**
-  - [x] Build Cyber Noir timeline sections, resume action, responsive layout, and accessibility behavior, **AC-1**, **AC-2**, **AC-4**, **AC-5**, **AC-10**
-- [ ] Verify it: `/check verify about and resume page`
-- [ ] Test it: `/test about and resume page`
+This capability already exists in the public home page. It is skipped by the current workflow. [Spec 0002](../specs/web/0002-about-resume-page/index.md) · code in `apps/web/`
 
 ### 7a. Public UI reset · in-progress
 
@@ -45,30 +36,31 @@ Remove the current public visual system while keeping the portfolio readable, fu
 - [ ] Verify it: `/check verify reset public UI`
 - [ ] Test it: `/test reset public UI`
 
-### 8. Services page · needs a decision
+### 8. Services page · existing
 
 Explain the full stack services the owner offers and guide a suitable visitor toward contact.
-**Done when:** active services render with clear outcomes and calls to action, inactive services stay hidden, and the page works across supported screen sizes and input methods.
+This capability already exists as a services section on the public home page. It is skipped by the current workflow. Code in `apps/web/`
 
-- [ ] Design it (spec): `/architect services page`
-
-### 9. Project discovery · needs a decision
+### 9. Project discovery · existing
 
 Help technical reviewers find the work most relevant to a role by browsing and filtering projects by skill or category.
-**Done when:** visitors can browse published projects, combine useful filters, clear them, share the resulting address, and understand empty, loading, and error states without losing context.
+This capability already exists through the public project archive. It is skipped by the current workflow. Code in `apps/web/`
 
-- [ ] Design it (spec): `/architect project discovery`
-
-### 10. Project case study · needs a decision
+### 10. Project case study · existing
 
 Turn each project into evidence of engineering judgment, implementation skill, and measurable outcome.
-**Done when:** every published project has a shareable detail page with its role, problem, decisions, stack, results, media, and available live or source links; missing optional fields are handled cleanly.
+This capability already exists through the project detail content shown in the public archive. It is skipped by the current workflow. Code in `apps/web/`
 
-- [ ] Design it (spec): `/architect project case study`
-
-### 11. Contact journey · needs a decision
+### 11. Contact journey · in-progress
 
 Let a qualified visitor send a message and give the owner a dependable notification without exposing contact data.
 **Done when:** a visitor can submit necessary contact details, see validation and clear success or failure feedback, and trigger one stored message and one owner notification; abuse controls, consent text, and a privacy notice protect the path.
 
-- [ ] Design it (spec): `/architect contact journey`
+- [x] Design it (spec): `/architect contact journey`
+      [Spec 0002](../specs/0002-portfolio-content/0002-contact-form.md) · code in `apps/api/src/contact/`
+- [ ] Build it: `/develop contact journey`
+  - [ ] Add the email gateway port, fake gateway, Resend configuration, and safe message formatter, **AC-1**, **AC-2**, **AC-5**, **AC-6**
+  - [ ] Add the lease-token migration and outbox worker claim, retry, lease-recovery, and failure lifecycle, **AC-2**, **AC-3**, **AC-4**, **AC-5**
+  - [ ] Add the standalone worker command, deployment configuration, and automated delivery tests, **AC-1** through **AC-6**
+- [ ] Verify it: `/check verify contact journey`
+- [ ] Test it: `/test contact journey`
