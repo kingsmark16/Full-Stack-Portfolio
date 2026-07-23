@@ -1,0 +1,10 @@
+node_modules
+apps/api/node_modules
+dist
+apps/api/dist
+.next
+coverage
+.git
+.env
+.env.*
+test-results

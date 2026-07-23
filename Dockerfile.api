@@ -1,0 +1,23 @@
+FROM node:24-alpine
+
+RUN corepack enable
+
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY apps/api/package.json apps/api/package.json
+
+RUN --mount=type=cache,id=portfolio-pnpm,target=/root/.local/share/pnpm/store \
+   pnpm install --filter api... --frozen-lockfile --prod=false \
+    --network-concurrency=4 \
+    --fetch-retries=5 \
+    --fetch-timeout=300000
+
+COPY apps/api apps/api
+
+RUN pnpm --filter api generate
+RUN pnpm --filter api build
+
+EXPOSE 3001
+
+CMD ["node", "apps/api/dist/src/main.js"]
