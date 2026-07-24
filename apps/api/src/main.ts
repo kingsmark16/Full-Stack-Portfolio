@@ -10,7 +10,9 @@ import { requestIdMiddleware } from './common/http/request-id.middleware'
 import { ProblemDetailsFilter } from './common/http/problem-details.filter'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create(AppModule, {
+    bodyParser: false,
+  })
   const expressApp = app.getHttpAdapter().getInstance() as Express &
     TrustProxyConfigurable
   configureTrustProxy(expressApp)
