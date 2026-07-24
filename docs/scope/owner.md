@@ -2,12 +2,23 @@
 
 This journey is complete when the owner can securely update every item in the first release without changing code.
 
-### 12. Owner access · needs a decision
+### 12. Owner access · in-progress
 
-Protect the dashboard for one owner while keeping sign in, session expiry, sign out, and account recovery dependable.
-**Done when:** only the owner can reach dashboard data and actions, failed access reveals no private information, recovery works securely, and sensitive events are recorded for diagnosis.
+Protect the dashboard for one owner with password sign in, secure session expiry, and sign out.
+**Done when:** only the owner can reach dashboard data and actions, failed access reveals no private information, and the password only access flow works reliably.
 
-- [ ] Design it (spec): `/architect owner access`
+- [x] Design it (spec): [0003 Owner access](../specs/_root/0003-owner-access/index.md)
+- [ ] Build it: `/develop owner access`
+- [ ] Verify it: `/check verify owner access`
+- [ ] Test it: `/test owner access`
+- [ ] Review it: `/check review owner access`
+- [ ] Document it: `/document changelog`
+
+Build milestones from the approved spec:
+
+- [ ] Add Better Auth, the singleton owner mapping, migration, protected bootstrap, and concurrency proof. Covers AC 1 and AC 6.
+- [ ] Deliver secure sessions, sign in, sign out, origin checks, rate limiting, and the owner API guard. Covers AC 2, AC 3, AC 4, and AC 6.
+- [ ] Deliver accessible sign in and dashboard screens, then prove browser behavior, failure states, logs, and public portfolio isolation. Covers AC 2, AC 3, AC 4, AC 5, and AC 6.
 
 ### 13. Dashboard overview · needs a decision
 

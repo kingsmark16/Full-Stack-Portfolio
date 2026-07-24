@@ -390,6 +390,10 @@ describe('AppController (e2e)', () => {
       .expect(429)
   })
 
+  it('rejects anonymous owner access', async () => {
+    await request(app.getHttpServer()).get('/owner/access').expect(401)
+  })
+
   afterEach(async () => {
     await app.close()
   })
