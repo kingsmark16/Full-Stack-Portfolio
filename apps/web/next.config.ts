@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
+        source: '/api/auth/:path*',
+        destination: `${apiInternalUrl}/api/auth/:path*`,
+      },
+      {
         source: '/api',
         destination: `${apiInternalUrl}`,
       },
