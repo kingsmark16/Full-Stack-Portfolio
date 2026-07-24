@@ -280,3 +280,23 @@ test('AC-5 keeps the baseline usable at a medium viewport', async ({
   )
   expect(hasHorizontalOverflow).toBe(false)
 })
+
+test('renders the owner sign-in route', async ({ page }) => {
+  await page.goto('/dashboard/sign-in')
+
+  await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
+
+  await page.getByLabel('Email').fill('unknown-owner@example.com')
+  await page.getByLabel('Password').fill('Wrong-password-123!')
+  await page.getByRole('button', { name: 'Sign in' }).click()
+
+  await expect(
+    page.getByText('Invalid email or password', { exact: true }),
+  ).toBeVisible()
+})
+
+test('redirects anonymous dashboard visitors to sign in', async ({ page }) => {
+  await page.goto('/dashboard')
+
+  await expect(page).toHaveURL(/\/dashboard\/sign-in$/)
+})

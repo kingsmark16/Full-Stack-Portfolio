@@ -31,6 +31,10 @@ describe('Next.js API rewrites', () => {
 
     await expect(config.rewrites?.()).resolves.toEqual([
       {
+        source: '/api/auth/:path*',
+        destination: 'http://localhost:3001/api/auth/:path*',
+      },
+      {
         source: '/api',
         destination: 'http://localhost:3001',
       },
@@ -47,6 +51,10 @@ describe('Next.js API rewrites', () => {
     const config = await loadConfig()
 
     await expect(config.rewrites?.()).resolves.toEqual([
+      {
+        source: '/api/auth/:path*',
+        destination: 'https://api.example.com/api/auth/:path*',
+      },
       {
         source: '/api',
         destination: 'https://api.example.com',
